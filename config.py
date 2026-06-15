@@ -53,10 +53,13 @@ CATEGORY_LABELS = {
 }
 
 # ── Performance tuning ────────────────────────────────────────────────────────
-MAX_WORKERS    = 20    # parallel threads for downloading sources
+MAX_WORKERS    = 50    # parallel threads for downloading & checking URLs
 SOURCE_TIMEOUT = 20    # seconds to wait when fetching a source playlist
-CHECK_TIMEOUT  = 5     # seconds per URL reachability check
+CHECK_TIMEOUT  = 8     # seconds per URL reachability check
 
-# True  → skip per-URL check (fast, finishes in minutes)
-# False → HTTP HEAD check each URL (filters dead links, ~10–20 min with 20 workers)
-SKIP_URL_CHECK = True
+# True  → skip per-URL check (fast, finishes in minutes, keeps dead links)
+# False → HTTP HEAD/GET check each URL (filters dead links, recommended)
+SKIP_URL_CHECK = False
+
+# How many retries on connection error before marking a URL dead
+CHECK_RETRIES = 1
