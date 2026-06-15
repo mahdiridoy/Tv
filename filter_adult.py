@@ -1,4 +1,20 @@
+"""
+Adult Content Filter
+--------------------
+Reads output.m3u, removes any channel whose #EXTINF line or stream URL
+contains an adult keyword, then writes the cleaned playlist to ridoyiptv.m3u.
+"""
+
 import os
+import re
+import logging
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s  %(levelname)-7s  %(message)s",
+    datefmt="%H:%M:%S",
+)
+log = logging.getLogger(__name__)
 
 SOURCE_FILE = "output.m3u"
 OUTPUT_FILE = "ridoyiptv.m3u"
@@ -12,22 +28,29 @@ ADULT_KEYWORDS = [
     "hentai", "nude", "naked", "milf", "fetish",
     "hardcore", "softcore", "explicit", "uncensored",
     "redlight", "red light", "taboo", "18+",
-    "for adults", "adults only", "hot movies", "private"
+    "for adults", "adults only", "hot movies",
 ]
 
-def is_adult(text):
-    text = text.lower()
-    return any(keyword in text for keyword in ADULT_KEYWORDS)
+# Pre-compile one regex — much faster than looping over keywords one by one
+_ADULT_RE = re.compile(
+    "|".join(re.escape(k) for k in ADULT_KEYWORDS),
+    re.IGNORECASE,
+)
 
-def main():
+
+def is_adult(text: str) -> bool:
+    return bool(_ADULT_RE.search(text))
+
+
+def main() -> None:
     if not os.path.exists(SOURCE_FILE):
-        print(f"{SOURCE_FILE} not found")
+        log.error(f"{SOURCE_FILE} not found — run processor.py first")
         return
 
     with open(SOURCE_FILE, "r", encoding="utf-8", errors="ignore") as f:
         lines = f.readlines()
 
-    cleaned = []
+    cleaned: list[str] = []
     removed = 0
     i = 0
 
@@ -35,32 +58,30 @@ def main():
         line = lines[i]
 
         if line.startswith("#EXTINF"):
-            block_text = line.lower()
+            url_line = lines[i + 1] if i + 1 < len(lines) else ""
 
-            if i + 1 < len(lines):
-                block_text += lines[i + 1].lower()
-
-            if is_adult(block_text):
+            if is_adult(line) or is_adult(url_line):
                 removed += 1
                 i += 2
                 continue
 
             cleaned.append(line)
-
-            if i + 1 < len(lines):
-                cleaned.append(lines[i + 1])
-
+            if url_line:
+                cleaned.append(url_line)
             i += 2
-            continue
-
-        cleaned.append(line)
-        i += 1
+        else:
+            cleaned.append(line)
+            i += 1
 
     with open(OUTPUT_FILE, "w", encoding="utf-8") as f:
         f.writelines(cleaned)
 
-    print(f"Removed channels: {removed}")
-    print(f"Saved cleaned playlist to {OUTPUT_FILE}")
+    kept = sum(1 for l in cleaned if l.startswith("#EXTINF"))
+    log.info(f"Removed : {removed} adult channels")
+    log.info(f"Kept    : {kept} clean channels")
+    log.info(f"Saved   → {OUTPUT_FILE}")
+
 
 if __name__ == "__main__":
     main()
+    
