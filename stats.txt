@@ -1,3 +1,12 @@
-Total: 677
-Final: 677
-BD: 31 | Cartoon: 11 | India: 23 | Other: 612
+Total parsed : 11705
+After dedup  : 10374
+Final output : 10374
+--------------------------------
+  Bangladesh     : 439
+  India          : 247
+  Kids & Cartoon : 172
+  News           : 489
+  Sports         : 1468
+  Movies         : 202
+  Music          : 191
+  Other          : 7166
