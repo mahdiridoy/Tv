@@ -1,13 +1,13 @@
-Total parsed : 12314
-After dedup  : 10893
-Dead removed : 6963
-Final output : 3930
+Total parsed : 12330
+After dedup  : 10900
+Dead removed : 7001
+Final output : 3899
 --------------------------------
-  Bangladesh     : 93
-  India          : 133
+  Bangladesh     : 92
+  India          : 135
   Kids & Cartoon : 74
   News           : 287
-  Sports         : 855
-  Movies         : 72
+  Sports         : 850
+  Movies         : 73
   Music          : 76
-  Other          : 2340
+  Other          : 2312
