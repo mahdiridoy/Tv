@@ -11,13 +11,13 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 15        # ← ADDED: kills job if anything hangs
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Install FFmpeg
-        run: sudo apt-get update && sudo apt-get install ffmpeg -y
+      # Install FFmpeg step REMOVED — no longer needed (ffprobe was the 6h timeout cause)
 
       - name: Setup Python
         uses: actions/setup-python@v5
@@ -44,3 +44,4 @@ jobs:
             git commit -m "Auto update: processed + filtered playlist"
             git push
           )
+          
