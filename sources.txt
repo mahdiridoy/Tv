@@ -15,5 +15,6 @@ https://go.skym3u.top/phav.m3u8
 https://go.skym3u.top/is8m.m3u
 https://go.skym3u.top/k98v.m3u
 https://lupael.github.io/IPTV/running.m3u
-https://lupael.github.io/IPTV/running.m3u
 https://lupael.github.io/IPTV/world.m3u
+https://go.skym3u.top/ik5m.m3u
+https://go.skym3u.top/ckni.m3u
