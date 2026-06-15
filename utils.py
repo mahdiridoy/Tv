@@ -1,6 +1,7 @@
 import re
+import time
 import requests
-from config import CHECK_TIMEOUT
+from config import CHECK_TIMEOUT, CHECK_RETRIES
 
 
 # ── URL Validation ────────────────────────────────────────────────────────────
@@ -8,20 +9,44 @@ from config import CHECK_TIMEOUT
 def http_check(url: str) -> bool:
     """
     Fast HTTP reachability check — HEAD first, GET fallback.
-    Replaces the old ffprobe/ffmpeg approach which caused 6-hour timeouts.
-    A HEAD request takes <1s vs ffprobe which downloads stream data.
+    Retries once on connection/timeout errors before marking dead.
+
+    Dead URL detection:
+      • HTTP 4xx / 5xx status → dead
+      • Connection refused / DNS failure → dead
+      • Timeout (CHECK_TIMEOUT seconds) → dead
+      • Redirect to a working URL → alive
     """
     headers = {"User-Agent": "Mozilla/5.0 (compatible; IPTVBot/1.0)"}
-    try:
-        r = requests.head(url, timeout=CHECK_TIMEOUT, allow_redirects=True, headers=headers)
-        if r.status_code < 400:
-            return True
-        # Some HLS endpoints refuse HEAD; fall back to a minimal GET
-        r = requests.get(url, timeout=CHECK_TIMEOUT, stream=True, headers=headers)
-        r.close()
-        return r.status_code < 400
-    except Exception:
-        return False
+
+    for attempt in range(1 + CHECK_RETRIES):
+        try:
+            # HEAD is fast — no body downloaded
+            r = requests.head(
+                url, timeout=CHECK_TIMEOUT,
+                allow_redirects=True, headers=headers,
+            )
+            if r.status_code < 400:
+                return True
+            if r.status_code in (405, 501):
+                # Server doesn't support HEAD — try a streaming GET (reads 0 bytes)
+                r2 = requests.get(
+                    url, timeout=CHECK_TIMEOUT,
+                    stream=True, headers=headers,
+                )
+                r2.close()
+                return r2.status_code < 400
+            # 4xx/5xx that isn't a HEAD-rejection → dead, no point retrying
+            return False
+        except requests.exceptions.Timeout:
+            if attempt < CHECK_RETRIES:
+                time.sleep(0.5)
+                continue
+            return False
+        except Exception:
+            return False
+
+    return False
 
 
 # ── M3U Parsing Helpers ───────────────────────────────────────────────────────
