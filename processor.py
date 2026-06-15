@@ -20,7 +20,7 @@ from config import (
     BD_KEYWORDS, INDIA_KEYWORDS, CARTOON_KEYWORDS,
     NEWS_KEYWORDS, SPORTS_KEYWORDS, MOVIES_KEYWORDS, MUSIC_KEYWORDS,
     CATEGORY_ORDER, CATEGORY_LABELS,
-    MAX_WORKERS, SOURCE_TIMEOUT, SKIP_URL_CHECK,
+    MAX_WORKERS, SOURCE_TIMEOUT, SKIP_URL_CHECK, CHECK_RETRIES,
 )
 from logos import LOGO_DB, DEFAULT_LOGO
 from utils import clean_name, parse_extinf_attrs, http_check
@@ -122,27 +122,41 @@ def parse_m3u(text: str) -> list[tuple[str, str]]:
 
 def validate_urls(pairs: list[tuple[str, str]]) -> list[tuple[str, str]]:
     """
-    Filter dead URLs using parallel HTTP HEAD checks.
-    Skipped when SKIP_URL_CHECK = True (default).
+    Filter dead URLs using parallel HTTP HEAD/GET checks.
+    Skipped when SKIP_URL_CHECK = True.
     """
     if SKIP_URL_CHECK:
-        log.info(f"URL validation skipped — keeping all {len(pairs)} entries")
+        log.info(f"URL validation skipped — keeping all {len(pairs)} entries (dead links NOT removed)")
         return pairs
 
-    log.info(f"Validating {len(pairs)} URLs with {MAX_WORKERS} workers…")
-    valid: list[tuple[str, str]] = []
+    log.info(
+        f"Validating {len(pairs)} URLs  "
+        f"[workers={MAX_WORKERS}, timeout={__import__('config').CHECK_TIMEOUT}s, retries={CHECK_RETRIES}]…"
+    )
+    valid:  list[tuple[str, str]] = []
+    dead_count = 0
 
     with ThreadPoolExecutor(max_workers=MAX_WORKERS) as ex:
         future_map = {ex.submit(http_check, url): (extinf, url) for extinf, url in pairs}
         done = 0
         for fut in as_completed(future_map):
             done += 1
+            extinf, url = future_map[fut]
             if fut.result():
-                valid.append(future_map[fut])
+                valid.append((extinf, url))
+            else:
+                dead_count += 1
+                log.debug(f"  DEAD  {url}")
             if done % 100 == 0 or done == len(pairs):
-                log.info(f"  {done}/{len(pairs)} checked — {len(valid)} live so far")
+                log.info(
+                    f"  {done}/{len(pairs)} checked — "
+                    f"{len(valid)} live, {dead_count} dead"
+                )
 
-    log.info(f"Validation done: {len(valid)}/{len(pairs)} channels reachable")
+    log.info(
+        f"Validation done: {len(valid)} live / {dead_count} dead "
+        f"({dead_count * 100 // len(pairs)}% removed)"
+    )
     return valid
 
 
@@ -198,9 +212,11 @@ def main() -> None:
             f.write(f"{url}\n")
 
     # 7. Write stats
+    dead = len(deduped) - len(valid_pairs)
     with open("stats.txt", "w") as f:
         f.write(f"Total parsed : {len(raw_pairs)}\n")
         f.write(f"After dedup  : {len(deduped)}\n")
+        f.write(f"Dead removed : {dead}\n")
         f.write(f"Final output : {len(final)}\n")
         f.write("-" * 32 + "\n")
         for c in CATEGORY_ORDER:
@@ -211,4 +227,4 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-    
+
