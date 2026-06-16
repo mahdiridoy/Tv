@@ -18,3 +18,7 @@ https://lupael.github.io/IPTV/running.m3u
 https://lupael.github.io/IPTV/world.m3u
 https://go.skym3u.top/ik5m.m3u
 https://go.skym3u.top/ckni.m3u
+https://go.skym3u.top/dis4.m3u
+https://go.skym3u.top/4cwy.m3u
+https://go.skym3u.top/dcip.m3u
+https://go.skym3u.top/6tbf.m3u
