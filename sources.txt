@@ -33,3 +33,4 @@ https://live24-x.vercel.app/next.m3u
 https://go.skym3u.top/uw7b.m3u
 https://go.skym3u.top/bi24.m3u
 https://go.skym3u.top/xn9h.m3u
+https://raw.githubusercontent.com/ahan443/FAST-IPTV/refs/heads/main/FIFA.m3u
