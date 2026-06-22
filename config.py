@@ -1880,9 +1880,10 @@ MUSIC_KEYWORDS = [
 ]
 
 # Category display names & priority order
-CATEGORY_ORDER = ["bd", "india", "cartoon", "news", "sports", "movies", "music", "other"]
+CATEGORY_ORDER = ["FIFA", "bd", "india", "cartoon", "news", "sports", "movies", "music", "other"]
 
 CATEGORY_LABELS = {
+    "FIFA":    "FIFA Worldcup 2026",
     "bd":      "Bangladesh",
     "india":   "India",
     "cartoon": "Kids & Cartoon",
