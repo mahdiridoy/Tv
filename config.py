@@ -4,7 +4,12 @@ FIFA_KEYWORDS = ["T Sports","TSports","BBC","BBC ONE","BBC TWO","ITV","ITV1","FO
     "FIFA 2026",
     "WC 2026",
     "Football World Cup",
-    "Soccer World Cup"
+    "Soccer World Cup", "Unite 8 Sports 1 HD",
+    "Unite 8 Sports 2 HD",
+    "Somoy",
+    "PTV 4K",
+    "S Football",
+    "TVP Sports",
 ]
 
 BD_KEYWORDS = [
