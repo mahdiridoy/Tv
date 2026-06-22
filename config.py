@@ -1,3 +1,10 @@
+FIFA_KEYWORDS = [
+    "T Sports", "Cignal", "BBC ONE", "TELEMUNDO", "beIN Max Ar", "FS1",
+    "Tipik", "CazéTV", "D SPORTS", "VRT", "SporTV", "FOX ONE", "Fox Sports",
+    "TSN 1", "M6 FR", "FUSSBALL", "Shomoy", "ORF",
+    "Sporza", "TUDN",
+]
+
 BD_KEYWORDS = [
     "BTV", "ATN", "Channel i", "Jamuna", "Somoy", "Ekattor",
     "NTV", "Bangla", "Boishakhi", "Desh", "Gazi", "DBC", "Mytv",
