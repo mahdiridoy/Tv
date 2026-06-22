@@ -1883,7 +1883,7 @@ MUSIC_KEYWORDS = [
 CATEGORY_ORDER = ["FIFA", "bd", "india", "cartoon", "news", "sports", "movies", "music", "other"]
 
 CATEGORY_LABELS = {
-    "FIFA":    "FIFA Worldcup 2026",
+    "FIFA":    "FWC 2026",
     "bd":      "Bangladesh",
     "india":   "India",
     "cartoon": "Kids & Cartoon",
