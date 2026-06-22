@@ -1,8 +1,10 @@
-FIFA_KEYWORDS = [
-    "T Sports", "Cignal", "BBC ONE", "TELEMUNDO", "beIN Max Ar", "FS1",
-    "Tipik", "CazéTV", "D SPORTS", "VRT", "SporTV", "FOX ONE", "Fox Sports",
-    "TSN 1", "M6 FR", "FUSSBALL", "Shomoy", "ORF",
-    "Sporza", "TUDN",
+FIFA_KEYWORDS = ["T Sports","TSports","BBC","BBC ONE","BBC TWO","ITV","ITV1","FOX","FS1","FOX Sports","Telemundo","Universo","TUDN","Univision","TSN","CTV","RDS","SBS","TVNZ","beIN","beIN Sports","beIN MAX","beIN Sports MAX","M6","ARD","ZDF","MagentaTV","RTVE","La 1","Teledeporte","RAI","Rai 1","Rai Sport","VRT","RTBF","Sporza","Tipik","NOS","ORF","ServusTV","SRF","RTS","RSI","RTP","Globo","SporTV","CazéTV","CazeTV","SBT","N Sports","Televisa","TV Azteca","Telefe","TV Publica","TyC Sports","Caracol","RCN","Win Sports","Chilevision","America Television","SuperSport","New World TV","TRT","Match TV","CCTV5","CCTV Sports","Migu","NHK","Fuji TV","Nippon TV","DAZN","JTBC","Sony Sports","Sony Ten","PTV Sports","Arena Sport","Sport TV","Eleven Sports","Canal+","Eurosport","Premier Sports","D SPORTS","Cignal","Shomoy","BTV","Toffee","Bioscope","Sky Sports","Sky Sport","ESPN","ESPN Deportes","Gol Mundial","FUSSBALL","Sportklub","TVP Sport","Polsat Sport","Sportdigital","Viaplay","V Sport","TV2 Sport","NRK","SVT","TV4","Yle","MTV3"
+               "FanCode", "FANCODE", "Sky F1", "Sky F1 DE", "Sky Sport FHD", "Sky Sport HD", "Tipik", "FIFA World Cup",
+    "World Cup",
+    "FIFA 2026",
+    "WC 2026",
+    "Football World Cup",
+    "Soccer World Cup"
 ]
 
 BD_KEYWORDS = [
