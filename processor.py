@@ -17,8 +17,8 @@ import requests
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from config import (
-    FIFA_KEYWORDS, BD_KEYWORDS, INDIA_KEYWORDS, CARTOON_KEYWORDS,
-    NEWS_KEYWORDS, SPORTS_KEYWORDS, MOVIES_KEYWORDS, MUSIC_KEYWORDS,
+    BD_KEYWORDS, INDIA_KEYWORDS, CARTOON_KEYWORDS,
+    NEWS_KEYWORDS, SPORTS_KEYWORDS, MOVIES_KEYWORDS, MUSIC_KEYWORDS, FIFA_KEYWORDS,
     CATEGORY_ORDER, CATEGORY_LABELS,
     MAX_WORKERS, SOURCE_TIMEOUT, SKIP_URL_CHECK, CHECK_RETRIES,
 )
@@ -50,7 +50,6 @@ def get_logo(name: str, embedded: str = "") -> str:
 # ── Categorisation ────────────────────────────────────────────────────────────
 
 _DETECT_ORDER = [
-    ("FIFA",    FIFA_KEYWORDS),
     ("bd",      BD_KEYWORDS),
     ("cartoon", CARTOON_KEYWORDS),
     ("news",    NEWS_KEYWORDS),
@@ -58,6 +57,7 @@ _DETECT_ORDER = [
     ("movies",  MOVIES_KEYWORDS),
     ("music",   MUSIC_KEYWORDS),
     ("india",   INDIA_KEYWORDS),
+    ("FIFA",    FIFA_KEYWORDS),
 ]
 
 
