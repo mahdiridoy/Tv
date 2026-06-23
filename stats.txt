@@ -1,14 +1,14 @@
-Total parsed : 17096
+Total parsed : 17103
 After dedup  : 13448
-Dead removed : 8628
-Final output : 4820
+Dead removed : 8619
+Final output : 4829
 --------------------------------
-  FWC 2026       : 1007
-  Bangladesh     : 108
-  India          : 230
-  Kids & Cartoon : 106
+  FWC 2026       : 986
+  Bangladesh     : 132
+  India          : 229
+  Kids & Cartoon : 107
   News           : 284
-  Sports         : 201
-  Movies         : 255
-  Music          : 138
-  Other          : 2491
+  Sports         : 204
+  Movies         : 254
+  Music          : 137
+  Other          : 2496
