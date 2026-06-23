@@ -1892,7 +1892,7 @@ CATEGORY_LABELS = {
     "movies":  "Movies",
     "music":   "Music",
     "other":   "Other",
-  "FIFA":    "FWC 2026",
+  "FIFA":    "Fifa Worldcup 2026",
 }
 
 # ── Performance tuning ────────────────────────────────────────────────────────
