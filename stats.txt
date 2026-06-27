@@ -1,14 +1,14 @@
-Total parsed : 19115
-After dedup  : 14271
-Dead removed : 9133
-Final output : 5138
+Total parsed : 19177
+After dedup  : 14332
+Dead removed : 9138
+Final output : 5194
 --------------------------------
-  Bangladesh     : 146
-  India          : 253
-  Kids & Cartoon : 112
-  News           : 322
-  Sports         : 1018
-  Movies         : 277
-  Music          : 144
-  Other          : 2666
-  Fifa Worldcup 2026: 200
+  Bangladesh     : 157
+  India          : 259
+  Kids & Cartoon : 111
+  News           : 321
+  Sports         : 1017
+  Movies         : 279
+  Music          : 145
+  Other          : 2710
+  Fifa Worldcup 2026: 195
