@@ -45,7 +45,7 @@ CATEGORY_LABELS = {
 
 # ── Performance tuning ────────────────────────────────────────────────────────
 MAX_WORKERS    = 200    # parallel threads for downloading & checking URLs
-SOURCE_TIMEOUT = 5    # seconds to wait when fetching a source playlist
+SOURCE_TIMEOUT = 3    # seconds to wait when fetching a source playlist
 CHECK_TIMEOUT  = 3     # seconds per URL reachability check
 
 # True  → skip per-URL check (fast, finishes in minutes, keeps dead links)
