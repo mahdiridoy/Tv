@@ -42,7 +42,7 @@ https://go.skym3u.top/iz9k.m3u
 https://go.skym3u.top/j2gj.m3u
 https://go.skym3u.top/upms.m3u
 https://go.skym3u.top/ixww.m3u
-https://raw.githubusercontent.com/ahan443/FAST-IPTV/refs/heads/main/u5zm_m3u.m3u8?fbclid=IwdGRjcASvahVjbGNrBK9qEGV4dG4DYWVtAjExAHNydGMGYXBwX2lkDDM1MDY4NTUzMTcyOAABHltQV7IYt4wcIWaBok4gwkuVVNxf6xvGoC7Y2eVfmJZ5Rz2AiCDu3o1TKwGP_aem_vhRpNsBnNy0-xuVCeZRytA
+https://raw.githubusercontent.com/ahan443/FAST-IPTV/refs/heads/main/u5zm_m3u.m3u8
 https://go.skym3u.top/nszn.m3u
 https://go.skym3u.top/u4bo.m3u
 https://go.skym3u.top/b6bq.m3u
@@ -57,3 +57,4 @@ https://go.skym3u.top/aqg3.m3u
 https://go.skym3u.top/fngj.m3u
 https://go.skym3u.top/oa2t.m3u
 https://go.skym3u.top/i4tk.m3u
+https://raw.githubusercontent.com/bugsfreeweb/LiveTVCollector/refs/heads/main/LiveTV/Bangladesh/LiveTV.m3u
