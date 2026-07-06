@@ -59,3 +59,4 @@ https://go.skym3u.top/oa2t.m3u
 https://go.skym3u.top/i4tk.m3u
 https://raw.githubusercontent.com/bugsfreeweb/LiveTVCollector/refs/heads/main/LiveTV/Bangladesh/LiveTV.m3u
 https://raw.githubusercontent.com/abid63636g-hue/Abidverse/refs/heads/main/link.m3u
+https://go.skym3u.top/vqux.m3u
