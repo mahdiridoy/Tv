@@ -28,8 +28,13 @@ FIFA_KEYWORDS = [
                 ]
 
 
+# Xtream Codes panels — Movies & Series pulled via player_api.php (separate from live M3U sources)
+XTREAM_PANELS = [
+    {"host": "http://premiumtvs.space:80", "username": "NammudeSydney", "password": "61403363861"},
+]
+
 # Category display names & priority order
-CATEGORY_ORDER = ["bd", "india", "cartoon", "news", "sports", "movies", "music", "other", "FIFA"]
+CATEGORY_ORDER = ["bd", "india", "cartoon", "news", "sports", "movies", "music", "other", "FIFA", "vod_movies", "vod_series"]
 
 CATEGORY_LABELS = {
     "bd":      "Bangladesh",
@@ -41,12 +46,14 @@ CATEGORY_LABELS = {
     "music":   "Music",
     "other":   "Other",
   "FIFA":    "FIFA WORLDCUP 2026",
+    "vod_movies": "VOD Movies",
+    "vod_series": "VOD Series",
 }
 
 # ── Performance tuning ────────────────────────────────────────────────────────
 MAX_WORKERS    = 200    # parallel threads for downloading & checking URLs
-SOURCE_TIMEOUT = 60    # seconds to wait when fetching a source playlist
-CHECK_TIMEOUT  = 1     # seconds per URL reachability check
+SOURCE_TIMEOUT = 20    # seconds to wait when fetching a source playlist (raised for large Xtream panels)
+CHECK_TIMEOUT  = 2     # seconds per URL reachability check
 
 # True  → skip per-URL check (fast, finishes in minutes, keeps dead links)
 # False → HTTP HEAD/GET check each URL (filters dead links, recommended)

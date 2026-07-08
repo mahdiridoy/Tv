@@ -19,7 +19,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from config import (
     BD_KEYWORDS, INDIA_KEYWORDS, CARTOON_KEYWORDS,
     NEWS_KEYWORDS, SPORTS_KEYWORDS, MOVIES_KEYWORDS, MUSIC_KEYWORDS, FIFA_KEYWORDS,
-    CATEGORY_ORDER, CATEGORY_LABELS,
+    CATEGORY_ORDER, CATEGORY_LABELS, XTREAM_PANELS,
     MAX_WORKERS, SOURCE_TIMEOUT, SKIP_URL_CHECK, CHECK_RETRIES,
 )
 from logos import LOGO_DB, DEFAULT_LOGO
@@ -84,6 +84,73 @@ def fetch_source(url: str) -> tuple[str, str | None]:
     except Exception as exc:
         log.warning(f"  SKIP  {url}  ({exc})")
         return url, None
+
+
+# ── Xtream VOD / Series fetching ──────────────────────────────────────────────
+
+def fetch_vod_and_series(panel: dict) -> list[tuple[str, str]]:
+    """Fetch Movies + Series from an Xtream panel and return (extinf, url) pairs."""
+    host, user, pw = panel["host"], panel["username"], panel["password"]
+    pairs: list[tuple[str, str]] = []
+    headers = {"User-Agent": "Mozilla/5.0 (compatible; IPTVBot/1.0)"}
+
+    # Movies
+    try:
+        r = requests.get(
+            f"{host}/player_api.php",
+            params={"username": user, "password": pw, "action": "get_vod_streams"},
+            timeout=SOURCE_TIMEOUT, headers=headers,
+        )
+        r.raise_for_status()
+        movies = r.json()
+        for item in movies:
+            name = item.get("name", "Unknown")
+            ext  = item.get("container_extension", "mp4")
+            sid  = item.get("stream_id")
+            logo = item.get("stream_icon", "")
+            url  = f"{host}/movie/{user}/{pw}/{sid}.{ext}"
+            extinf = f'#EXTINF:-1 tvg-logo="{logo}" group-title="VOD Movies",{name}'
+            pairs.append((extinf, url))
+        log.info(f"  OK    VOD movies from {host}  ({len(movies)} items)")
+    except Exception as exc:
+        log.warning(f"  SKIP  VOD movies {host}  ({exc})")
+
+    # Series -> episodes
+    try:
+        r = requests.get(
+            f"{host}/player_api.php",
+            params={"username": user, "password": pw, "action": "get_series"},
+            timeout=SOURCE_TIMEOUT, headers=headers,
+        )
+        r.raise_for_status()
+        series_list = r.json()
+        for series in series_list:
+            series_id = series.get("series_id")
+            try:
+                r2 = requests.get(
+                    f"{host}/player_api.php",
+                    params={"username": user, "password": pw,
+                            "action": "get_series_info", "series_id": series_id},
+                    timeout=SOURCE_TIMEOUT, headers=headers,
+                )
+                r2.raise_for_status()
+                episodes = r2.json().get("episodes", {})
+                for season_eps in episodes.values():
+                    for ep in season_eps:
+                        ep_id = ep.get("id")
+                        ext   = ep.get("container_extension", "mp4")
+                        title = f"{series.get('name', '')} - {ep.get('title', '')}"
+                        logo  = series.get("cover", "")
+                        url   = f"{host}/series/{user}/{pw}/{ep_id}.{ext}"
+                        extinf = f'#EXTINF:-1 tvg-logo="{logo}" group-title="VOD Series",{title}'
+                        pairs.append((extinf, url))
+            except Exception as exc:
+                log.warning(f"  SKIP  series {series_id}  ({exc})")
+        log.info(f"  OK    VOD series from {host}  ({len(series_list)} series)")
+    except Exception as exc:
+        log.warning(f"  SKIP  VOD series {host}  ({exc})")
+
+    return pairs
 
 
 # ── M3U parsing ───────────────────────────────────────────────────────────────
@@ -169,7 +236,7 @@ def main() -> None:
         sources = list(dict.fromkeys(x.strip() for x in f if x.strip()))
     log.info(f"Loaded {len(sources)} unique sources")
 
-    # 2. Download all sources in parallel
+    # 2. Download all live-TV M3U sources in parallel
     raw_pairs: list[tuple[str, str]] = []
     with ThreadPoolExecutor(max_workers=MAX_WORKERS) as ex:
         futures = {ex.submit(fetch_source, s): s for s in sources}
@@ -180,21 +247,37 @@ def main() -> None:
                 raw_pairs.extend(parsed)
                 log.info(f"  OK    {src_url}  ({len(parsed)} channels)")
 
-    log.info(f"Total parsed: {len(raw_pairs)} channels")
+    log.info(f"Total parsed (live sources): {len(raw_pairs)} channels")
 
-    # 3. Deduplicate by stream URL
+    # 2b. Fetch VOD/series separately — these bypass HTTP validation entirely
+    vod_pairs: list[tuple[str, str]] = []
+    for panel in XTREAM_PANELS:
+        panel_pairs = fetch_vod_and_series(panel)
+        vod_pairs.extend(panel_pairs)
+        log.info(f"  OK    VOD/Series {panel['host']}  ({len(panel_pairs)} items)")
+
+    # 3. Deduplicate LIVE entries by stream URL
     seen: set[str] = set()
     deduped: list[tuple[str, str]] = []
     for extinf, url in raw_pairs:
         if url not in seen:
             seen.add(url)
             deduped.append((extinf, url))
-    log.info(f"After dedup: {len(deduped)} unique channels")
+    log.info(f"After dedup (live): {len(deduped)} unique channels")
 
-    # 4. Optional URL validation
+    # Dedup VOD/series too (cheap, no network calls)
+    seen_vod: set[str] = set()
+    vod_deduped: list[tuple[str, str]] = []
+    for extinf, url in vod_pairs:
+        if url not in seen_vod:
+            seen_vod.add(url)
+            vod_deduped.append((extinf, url))
+    log.info(f"After dedup (VOD/series): {len(vod_deduped)} items")
+
+    # 4. Validate ONLY live TV URLs — VOD/series skip this (avoids panel rate-limiting)
     valid_pairs = validate_urls(deduped)
 
-    # 5. Categorise into 8 groups
+    # 5. Categorise live entries into groups
     cats: dict[str, list] = {c: [] for c in CATEGORY_ORDER}
     for extinf, url in valid_pairs:
         attrs = parse_extinf_attrs(extinf)
@@ -204,7 +287,16 @@ def main() -> None:
         short = clean_name(name)
         cats[cat].append((short, url, logo, CATEGORY_LABELS[cat]))
 
-    # 6. Write output.m3u (BD → India → Cartoon → News → Sports → Movies → Music → Other)
+    # 5b. Categorise VOD/series entries — taken straight from group-title, no keyword detection
+    for extinf, url in vod_deduped:
+        attrs = parse_extinf_attrs(extinf)
+        name  = attrs.get("name", "Unknown")
+        logo  = attrs.get("tvg-logo", "")
+        group = attrs.get("group-title", "VOD Movies")
+        cat   = "vod_movies" if group == "VOD Movies" else "vod_series"
+        cats[cat].append((name, url, logo, CATEGORY_LABELS[cat]))
+
+    # 6. Write output.m3u (BD → India → Cartoon → News → Sports → Movies → Music → Other → FIFA → VOD Movies → VOD Series)
     final = [ch for c in CATEGORY_ORDER for ch in cats[c]]
     with open("output.m3u", "w", encoding="utf-8") as f:
         f.write("#EXTM3U\n")
@@ -215,15 +307,16 @@ def main() -> None:
     # 7. Write stats
     dead = len(deduped) - len(valid_pairs)
     with open("stats.txt", "w") as f:
-        f.write(f"Total parsed : {len(raw_pairs)}\n")
-        f.write(f"After dedup  : {len(deduped)}\n")
-        f.write(f"Dead removed : {dead}\n")
-        f.write(f"Final output : {len(final)}\n")
+        f.write(f"Total parsed (live) : {len(raw_pairs)}\n")
+        f.write(f"After dedup (live)  : {len(deduped)}\n")
+        f.write(f"Dead removed        : {dead}\n")
+        f.write(f"VOD/Series items    : {len(vod_deduped)} (unvalidated)\n")
+        f.write(f"Final output        : {len(final)}\n")
         f.write("-" * 32 + "\n")
         for c in CATEGORY_ORDER:
             f.write(f"  {CATEGORY_LABELS[c]:<15}: {len(cats[c])}\n")
 
-    log.info(f"Done — {len(final)} channels written to output.m3u")
+    log.info(f"Done — {len(final)} channels/items written to output.m3u")
 
 
 if __name__ == "__main__":
