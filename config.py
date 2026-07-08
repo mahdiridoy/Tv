@@ -52,7 +52,7 @@ CATEGORY_LABELS = {
 
 # ── Performance tuning ────────────────────────────────────────────────────────
 MAX_WORKERS    = 200    # parallel threads for downloading & checking URLs
-SOURCE_TIMEOUT = 20    # seconds to wait when fetching a source playlist (raised for large Xtream panels)
+SOURCE_TIMEOUT = 120    # seconds to wait when fetching a source playlist (raised for large Xtream panels)
 CHECK_TIMEOUT  = 2     # seconds per URL reachability check
 
 # True  → skip per-URL check (fast, finishes in minutes, keeps dead links)
