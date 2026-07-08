@@ -115,7 +115,7 @@ def fetch_vod_and_series(panel: dict) -> list[tuple[str, str]]:
     except Exception as exc:
         log.warning(f"  SKIP  VOD movies {host}  ({exc})")
 
-    # Series -> episodes
+    # Series -> episodes (parallelized — one call per series, same worker pool as live sources)
     try:
         r = requests.get(
             f"{host}/player_api.php",
@@ -124,8 +124,10 @@ def fetch_vod_and_series(panel: dict) -> list[tuple[str, str]]:
         )
         r.raise_for_status()
         series_list = r.json()
-        for series in series_list:
+
+        def fetch_one_series(series: dict) -> list[tuple[str, str]]:
             series_id = series.get("series_id")
+            out: list[tuple[str, str]] = []
             try:
                 r2 = requests.get(
                     f"{host}/player_api.php",
@@ -143,9 +145,20 @@ def fetch_vod_and_series(panel: dict) -> list[tuple[str, str]]:
                         logo  = series.get("cover", "")
                         url   = f"{host}/series/{user}/{pw}/{ep_id}.{ext}"
                         extinf = f'#EXTINF:-1 tvg-logo="{logo}" group-title="VOD Series",{title}'
-                        pairs.append((extinf, url))
+                        out.append((extinf, url))
             except Exception as exc:
                 log.warning(f"  SKIP  series {series_id}  ({exc})")
+            return out
+
+        done = 0
+        with ThreadPoolExecutor(max_workers=MAX_WORKERS) as ex:
+            futures = {ex.submit(fetch_one_series, s): s for s in series_list}
+            for fut in as_completed(futures):
+                pairs.extend(fut.result())
+                done += 1
+                if done % 200 == 0 or done == len(series_list):
+                    log.info(f"  Series info: {done}/{len(series_list)} processed")
+
         log.info(f"  OK    VOD series from {host}  ({len(series_list)} series)")
     except Exception as exc:
         log.warning(f"  SKIP  VOD series {host}  ({exc})")
