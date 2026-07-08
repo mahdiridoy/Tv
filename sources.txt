@@ -61,3 +61,6 @@ https://raw.githubusercontent.com/bugsfreeweb/LiveTVCollector/refs/heads/main/Li
 https://raw.githubusercontent.com/abid63636g-hue/Abidverse/refs/heads/main/link.m3u
 https://go.skym3u.top/vqux.m3u
 https://go.skym3u.top/uubd.m3u
+https://go.skym3u.top/qjim.m3u
+https://go.skym3u.top/mzxi.m3u
+https://go.skym3u.top/ytuc.m3u
