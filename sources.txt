@@ -64,3 +64,4 @@ https://go.skym3u.top/uubd.m3u
 https://go.skym3u.top/qjim.m3u
 https://go.skym3u.top/mzxi.m3u
 https://go.skym3u.top/ytuc.m3u
+http://premiumtvs.space:80/get.php?username=NammudeSydney&password=61403363861&type=m3u_plus&output=ts
