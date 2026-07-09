@@ -49,7 +49,7 @@ jobs:
             --notes "Auto-updated $(date -u +'%Y-%m-%d %H:%M UTC')"
 
       - name: Wait before next run
-        run: sleep 1800
+        run: sleep 11000
 
       - name: Trigger next run
         run: |
