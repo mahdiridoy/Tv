@@ -34,20 +34,22 @@ jobs:
       - name: Run Adult Filter
         run: python filter_adult.py
 
-      - name: Commit output
+      - name: Upload playlist as Release asset
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          TAG="latest-playlist"
+          git tag -f "$TAG"
+          git push origin "$TAG" --force
 
-          git add output.m3u stats.txt ridoyiptv.m3u
-
-          git diff --cached --quiet || (
-            git commit -m "Auto update: processed + filtered playlist"
-            git push
-          )
+          gh release delete "$TAG" --yes --repo ${{ github.repository }} || true
+          gh release create "$TAG" output.m3u ridoyiptv.m3u stats.txt \
+            --repo ${{ github.repository }} \
+            --title "Latest IPTV Playlist" \
+            --notes "Auto-updated $(date -u +'%Y-%m-%d %H:%M UTC')"
 
       - name: Wait before next run
-        run: sleep 1800   # 30 min gap after finish — adjust as needed
+        run: sleep 1800
 
       - name: Trigger next run
         run: |
