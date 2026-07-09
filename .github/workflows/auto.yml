@@ -1,27 +1,24 @@
 name: IPTV PRO Auto Engine
 
 on:
-  schedule:
-    - cron: "0 */7 * * *"
   workflow_dispatch:
 
 permissions:
   contents: write
-  
+  actions: write
+
 concurrency:
   group: iptv-pro-auto-engine
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 420        # ← ADDED: kills job if anything hangs
+    timeout-minutes: 420
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-
-      # Install FFmpeg step REMOVED — no longer needed (ffprobe was the 6h timeout cause)
 
       - name: Setup Python
         uses: actions/setup-python@v5
@@ -48,4 +45,14 @@ jobs:
             git commit -m "Auto update: processed + filtered playlist"
             git push
           )
-          
+
+      - name: Wait before next run
+        run: sleep 1800   # 30 min gap after finish — adjust as needed
+
+      - name: Trigger next run
+        run: |
+          curl -X POST \
+            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Accept: application/vnd.github.v3+json" \
+            https://api.github.com/repos/${{ github.repository }}/actions/workflows/auto.yml/dispatches \
+            -d '{"ref":"main"}'
