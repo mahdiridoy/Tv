@@ -13,6 +13,7 @@ Fix: replaced with optional parallel HTTP HEAD check (milliseconds per URL).
 """
 
 import logging
+import re
 import requests
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
@@ -166,6 +167,31 @@ def fetch_vod_and_series(panel: dict) -> list[tuple[str, str]]:
     return pairs
 
 
+# ── VOD leakage filter ────────────────────────────────────────────────────────
+# Some Xtream panels bundle movies/series into their "live" get.php M3U export.
+# This detects and strips those so only real live channels stay in the live categories.
+
+_VOD_URL_PATTERN   = re.compile(r"/(movie|series)/", re.IGNORECASE)
+_VOD_EXT_PATTERN   = re.compile(r"\.(mp4|mkv|avi|mov|flv)(\?|$)", re.IGNORECASE)
+_EPISODE_PATTERN   = re.compile(r"\bS\d{1,2}E\d{1,3}\b", re.IGNORECASE)          # S01E02
+_SEASON_PATTERN    = re.compile(r"\bSeason\s*\d{1,2}\b", re.IGNORECASE)          # Season 1
+_YEAR_TAG_PATTERN  = re.compile(r"\(\d{4}\)")                                     # (2023) — common in movie titles
+
+def is_vod_entry(extinf: str, url: str) -> bool:
+    """Return True if this entry looks like a movie/series item, not a live channel."""
+    if _VOD_URL_PATTERN.search(url):
+        return True
+    if _VOD_EXT_PATTERN.search(url):
+        return True
+    attrs = parse_extinf_attrs(extinf)
+    name = attrs.get("name", "")
+    if _EPISODE_PATTERN.search(name) or _SEASON_PATTERN.search(name):
+        return True
+    if _YEAR_TAG_PATTERN.search(name):
+        return True
+    return False
+
+
 # ── M3U parsing ───────────────────────────────────────────────────────────────
 
 def parse_m3u(text: str) -> list[tuple[str, str]]:
@@ -262,6 +288,19 @@ def main() -> None:
 
     log.info(f"Total parsed (live sources): {len(raw_pairs)} channels")
 
+    # 2a. Strip VOD/series entries that leaked into "live" source exports
+    # (some Xtream panels bundle movies/series into their get.php M3U output)
+    live_only_pairs = []
+    leaked_vod_count = 0
+    for extinf, url in raw_pairs:
+        if is_vod_entry(extinf, url):
+            leaked_vod_count += 1
+        else:
+            live_only_pairs.append((extinf, url))
+    raw_pairs = live_only_pairs
+    log.info(f"Stripped {leaked_vod_count} VOD/series entries leaked into live sources")
+    log.info(f"Live channels after VOD filter: {len(raw_pairs)}")
+
     # 2b. Fetch VOD/series separately — these bypass HTTP validation entirely
     vod_pairs: list[tuple[str, str]] = []
     for panel in XTREAM_PANELS:
@@ -320,7 +359,8 @@ def main() -> None:
     # 7. Write stats
     dead = len(deduped) - len(valid_pairs)
     with open("stats.txt", "w") as f:
-        f.write(f"Total parsed (live) : {len(raw_pairs)}\n")
+        f.write(f"Total parsed (live) : {len(raw_pairs) + leaked_vod_count}\n")
+        f.write(f"VOD/series leaked   : {leaked_vod_count} (stripped from live)\n")
         f.write(f"After dedup (live)  : {len(deduped)}\n")
         f.write(f"Dead removed        : {dead}\n")
         f.write(f"VOD/Series items    : {len(vod_deduped)} (unvalidated)\n")
