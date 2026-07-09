@@ -2,7 +2,7 @@ name: IPTV PRO Auto Engine
 
 on:
   schedule:
-    - cron: "0 */12 * * *"
+    - cron: "0 */6 * * *"
   workflow_dispatch:
 
 permissions:
@@ -11,7 +11,7 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 60        # ← ADDED: kills job if anything hangs
+    timeout-minutes: 360        # ← ADDED: kills job if anything hangs
 
     steps:
       - name: Checkout repository
