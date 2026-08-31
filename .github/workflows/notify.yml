@@ -1,0 +1,54 @@
+name: Telegram Notify on gh-pages Push
+
+on:
+  push:
+    branches: [gh-pages]
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Send Telegram notification
+        env:
+          TG_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TG_CHAT: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          python -c "
+          import os, urllib.parse, urllib.request
+
+          token = os.environ.get('TG_TOKEN', '')
+          chat_id = os.environ.get('TG_CHAT', '')
+
+          if not token or not chat_id:
+              print('Telegram secrets not set, skipping')
+              exit(0)
+
+          # Get changed files from the push
+          import json
+          event_path = os.environ.get('GITHUB_EVENT_PATH', '')
+          with open(event_path) as f:
+              event = json.load(f)
+
+          commits = event.get('commits', [])
+          added = []
+          modified = []
+          for c in commits:
+              added.extend(c.get('added', []))
+              modified.extend(c.get('modified', []))
+
+          files = set(added + modified)
+
+          if 'mahdi_iptv.m3u8' in files:
+              msg = '📺 mahdi_iptv.m3u8 Updated!\n\nURL: https://mahdiridoy.github.io/Tv/mahdi_iptv.m3u8\nSource: run2.bat (local)'
+          elif 'ridoyiptv.m3u' in files:
+              msg = '📺 ridoyiptv.m3u Updated!\n\nURL: https://mahdiridoy.github.io/Tv/ridoyiptv.m3u\nSource: auto.yml (GitHub Actions)'
+          else:
+              msg = '📺 Playlist updated on gh-pages!\n\nFiles changed: ' + ', '.join(files)
+
+          url = f'https://api.telegram.org/bot{token}/sendMessage'
+          data = urllib.parse.urlencode({'chat_id': chat_id, 'text': msg}).encode()
+          urllib.request.urlopen(urllib.request.Request(url, data=data, method='POST'), timeout=10)
+          print('Telegram notification sent!')
+          "
