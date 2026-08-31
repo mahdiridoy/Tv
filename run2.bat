@@ -78,6 +78,7 @@ echo =====================================
 set "TEMP_DIR=%TEMP%\gh-pages-push-%RANDOM%"
 mkdir "%TEMP_DIR%"
 copy /Y mahdi_iptv.m3u8 "%TEMP_DIR%\mahdi_iptv.m3u8" >nul
+copy /Y scan_stats.json "%TEMP_DIR%\scan_stats.json" >nul
 
 pushd "%TEMP_DIR%"
 git init
@@ -86,8 +87,8 @@ git config user.name "IPTV Bot"
 git branch -M gh-pages
 git remote add origin https://github.com/mahdiridoy/Tv.git
 git config credential.helper store
-git add mahdi_iptv.m3u8
-git commit -m "Auto update: playlist"
+git add mahdi_iptv.m3u8 scan_stats.json
+git commit -m "Auto update: mahdi_iptv.m3u8"
 git push -u origin gh-pages --force
 popd
 

@@ -54,12 +54,13 @@ jobs:
         run: |
           TEMP_DIR=$(mktemp -d)
           cp ridoyiptv.m3u "$TEMP_DIR/ridoyiptv.m3u"
+          cp scan_stats.json "$TEMP_DIR/scan_stats.json"
           cd "$TEMP_DIR"
           git init
           git config user.email "bot@iptv.local"
           git config user.name "IPTV Bot"
           git branch -M gh-pages
           git remote add origin https://github.com/${{ github.repository }}.git
-          git add ridoyiptv.m3u
-          git commit -m "Auto update: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          git add ridoyiptv.m3u scan_stats.json
+          git commit -m "Auto update: ridoyiptv.m3u"
           git push -u origin gh-pages --force

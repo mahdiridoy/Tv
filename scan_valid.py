@@ -9,9 +9,11 @@ Usage:
 """
 
 import argparse
+import json
 import logging
 import os
 import sys
+import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 import cloudscraper
@@ -80,13 +82,15 @@ def check_url(extinf_url):
     """
     extinf, url = extinf_url
     try:
+        start = time.time()
         r = scraper.head(url, timeout=TIMEOUT, allow_redirects=True)
+        latency = int((time.time() - start) * 1000)
         r.close()
         if 200 <= r.status_code < 300:
-            return extinf, url, True, r.status_code
-        return extinf, url, False, r.status_code
+            return extinf, url, True, r.status_code, latency
+        return extinf, url, False, r.status_code, latency
     except Exception as e:
-        return extinf, url, False, 0
+        return extinf, url, False, 0, 0
 
 
 def scan_links(entries, workers=MAX_WORKERS):
@@ -99,6 +103,7 @@ def scan_links(entries, workers=MAX_WORKERS):
     # results[i] = (extinf, url) if alive, else None
     results: list[tuple | None] = [None] * total
     dead = 0
+    latencies = []
 
     with ThreadPoolExecutor(max_workers=workers) as ex:
         # Map each future to its ORIGINAL index so we can restore order later
@@ -110,9 +115,11 @@ def scan_links(entries, workers=MAX_WORKERS):
         for fut in as_completed(future_to_idx):
             done += 1
             idx = future_to_idx[fut]
-            extinf, url, alive, status = fut.result()
+            extinf, url, alive, status, latency = fut.result()
             if alive:
                 results[idx] = (extinf, url)
+                if latency > 0:
+                    latencies.append(latency)
             else:
                 dead += 1
             if done % 100 == 0 or done == total:
@@ -121,8 +128,9 @@ def scan_links(entries, workers=MAX_WORKERS):
 
     # Preserve original order: only keep entries that passed
     valid = [r for r in results if r is not None]
-    log.info(f"Done: {len(valid)} valid / {dead} dead (order preserved)")
-    return valid, {"alive": len(valid), "dead": dead, "total": total}
+    avg_latency = int(sum(latencies) / len(latencies)) if latencies else 0
+    log.info(f"Done: {len(valid)} valid / {dead} dead / avg {avg_latency}ms (order preserved)")
+    return valid, {"alive": len(valid), "dead": dead, "total": total, "avg_latency_ms": avg_latency}
 
 
 # ── Main ──────────────────────────────────────────────────────────────────────
@@ -149,12 +157,19 @@ def main():
     write_m3u(args.output, valid_entries)
     log.info(f"Saved {len(valid_entries)} valid channels -> {args.output}")
 
+    # Save stats JSON for Telegram notification
+    stats_file = os.path.join(os.path.dirname(args.output) or ".", "scan_stats.json")
+    with open(stats_file, "w", encoding="utf-8") as f:
+        json.dump(stats, f)
+    log.info(f"Stats saved -> {stats_file}")
+
     print(f"\n{'='*50}")
     print(f"  SCAN RESULTS")
     print(f"{'='*50}")
-    print(f"  Total  : {stats['total']}")
-    print(f"  Valid  : {stats['alive']}")
-    print(f"  Dead   : {stats['dead']}")
+    print(f"  Total      : {stats['total']}")
+    print(f"  Valid      : {stats['alive']}")
+    print(f"  Dead       : {stats['dead']}")
+    print(f"  Avg latency: {stats['avg_latency_ms']} ms")
     print(f"{'='*50}\n")
 
 

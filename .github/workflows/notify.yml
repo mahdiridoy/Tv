@@ -10,13 +10,18 @@ jobs:
     timeout-minutes: 5
 
     steps:
+      - name: Checkout gh-pages
+        uses: actions/checkout@v4
+        with:
+          ref: gh-pages
+
       - name: Send Telegram notification
         env:
           TG_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TG_CHAT: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: |
           python -c "
-          import os, urllib.parse, urllib.request
+          import os, json, urllib.parse, urllib.request
 
           token = os.environ.get('TG_TOKEN', '')
           chat_id = os.environ.get('TG_CHAT', '')
@@ -25,30 +30,52 @@ jobs:
               print('Telegram secrets not set, skipping')
               exit(0)
 
-          # Get changed files from the push
-          import json
-          event_path = os.environ.get('GITHUB_EVENT_PATH', '')
-          with open(event_path) as f:
-              event = json.load(f)
-
-          commits = event.get('commits', [])
-          added = []
-          modified = []
-          for c in commits:
-              added.extend(c.get('added', []))
-              modified.extend(c.get('modified', []))
-
-          files = set(added + modified)
+          # Detect which file was updated
+          import subprocess
+          diff = subprocess.run(['git', 'log', '-1', '--name-only', '--pretty=format:'], capture_output=True, text=True).stdout.strip()
+          files = diff.split('\n')
 
           if 'mahdi_iptv.m3u8' in files:
-              msg = '📺 mahdi_iptv.m3u8 Updated!\n\nURL: https://mahdiridoy.github.io/Tv/mahdi_iptv.m3u8\nSource: run2.bat (local)'
+              filename = 'mahdi_iptv.m3u8'
+              url = 'https://mahdiridoy.github.io/Tv/mahdi_iptv.m3u8'
+              source = 'run2.bat (local)'
           elif 'ridoyiptv.m3u' in files:
-              msg = '📺 ridoyiptv.m3u Updated!\n\nURL: https://mahdiridoy.github.io/Tv/ridoyiptv.m3u\nSource: auto.yml (GitHub Actions)'
+              filename = 'ridoyiptv.m3u'
+              url = 'https://mahdiridoy.github.io/Tv/ridoyiptv.m3u'
+              source = 'auto.yml (GitHub Actions)'
           else:
-              msg = '📺 Playlist updated on gh-pages!\n\nFiles changed: ' + ', '.join(files)
+              filename = ', '.join(files)
+              url = 'https://mahdiridoy.github.io/Tv/'
+              source = 'unknown'
 
-          url = f'https://api.telegram.org/bot{token}/sendMessage'
+          # Read scan stats
+          stats_file = 'scan_stats.json'
+          if os.path.exists(stats_file):
+              with open(stats_file) as f:
+                  stats = json.load(f)
+              total = stats.get('total', '?')
+              valid = stats.get('alive', '?')
+              dead = stats.get('dead', '?')
+              latency = stats.get('avg_latency_ms', '?')
+          else:
+              total = valid = dead = latency = '?'
+
+          # Get commit hash and timestamp
+          commit = subprocess.run(['git', 'log', '-1', '--pretty=format:%h'], capture_output=True, text=True).stdout.strip()
+          timestamp = subprocess.run(['git', 'log', '-1', '--pretty=format:%ci'], capture_output=True, text=True).stdout.strip()
+
+          msg = (
+              f'\u2705 IPTV playlist updated - {filename}\n'
+              f'\U0001f552 {timestamp}   ({commit})\n\n'
+              f'\U0001f4fa Final channels: {valid}\n'
+              f'\U0001f5d1\ufe0f Removed (dead/buffering): {dead}\n'
+              f'\u26a1 Avg latency: {latency} ms\n\n'
+              f'\U0001f517 {url}\n'
+              f'\U0001f4e6 Source: {source}'
+          )
+
+          tg_url = f'https://api.telegram.org/bot{token}/sendMessage'
           data = urllib.parse.urlencode({'chat_id': chat_id, 'text': msg}).encode()
-          urllib.request.urlopen(urllib.request.Request(url, data=data, method='POST'), timeout=10)
+          urllib.request.urlopen(urllib.request.Request(tg_url, data=data, method='POST'), timeout=10)
           print('Telegram notification sent!')
           "
