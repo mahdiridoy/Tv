@@ -72,21 +72,23 @@ def write_m3u(filepath, entries):
             f.write(f"{url}\n")
 
 
-# ── Simple HTTP Check ────────────────────────────────────────────────────────
+# ── Stream Check ─────────────────────────────────────────────────────────────
 
 def check_url(extinf_url):
-    """Hard check: single HEAD request. ONE chance only.
+    """Hard check: single GET request, read first bytes. ONE chance only.
 
-    - 2xx  → alive
-    - 403, 404, 500, 502, timeout, connection error, SSL error → DEAD, no retry
+    - 200-299 AND data received → alive, latency = time to first bytes
+    - Anything else → DEAD, no retry
     """
     extinf, url = extinf_url
     try:
         start = time.time()
-        r = scraper.head(url, timeout=TIMEOUT, allow_redirects=True)
+        r = scraper.get(url, timeout=TIMEOUT, allow_redirects=True, stream=True)
+        # Read first chunk to confirm stream actually delivers data
+        chunk = r.raw.read(1024)
         latency = int((time.time() - start) * 1000)
         r.close()
-        if 200 <= r.status_code < 300:
+        if 200 <= r.status_code < 300 and len(chunk) > 0:
             return extinf, url, True, r.status_code, latency
         return extinf, url, False, r.status_code, latency
     except Exception as e:
