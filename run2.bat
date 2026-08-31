@@ -28,6 +28,31 @@ echo Installing requirements...
 python -m pip install --upgrade pip
 pip install -r requirements.txt
 
+REM ── Pull latest BEFORE pipeline runs ──
+echo.
+echo =====================================
+echo Pulling latest from GitHub...
+echo =====================================
+if not exist ".git" (
+    echo [INFO] Initializing git repo...
+    git init
+    git branch -M main
+    git config user.email "bot@iptv.local"
+    git config user.name "IPTV Bot"
+    git remote add origin https://github.com/mahdiridoy/Tv.git
+)
+git remote get-url origin >nul 2>&1
+if errorlevel 1 (
+    git remote add origin https://github.com/mahdiridoy/Tv.git
+)
+git config credential.helper store
+git pull --rebase origin main
+if errorlevel 1 (
+    echo [WARN] Pull failed, force syncing...
+    git fetch origin main
+    git reset --hard origin/main
+)
+
 echo.
 echo =====================================
 echo Running merge_m3u.py
@@ -60,42 +85,10 @@ echo.
 echo =====================================
 echo Running scan_valid.py (link validation)
 echo =====================================
-python scan_valid.py merged.m3u merged.m3u --stats-file mahdi_scan_stats.json
+python scan_valid.py merged.m3u mahdi_iptv.m3u8 --stats-file mahdi_scan_stats.json
 if errorlevel 1 goto :error
 
-echo.
-echo =====================================
-echo Copying to mahdi_iptv.m3u8
-echo =====================================
-copy /Y merged.m3u mahdi_iptv.m3u8
-
-REM ── Setup git repo if needed ──
-if not exist ".git" (
-    echo [INFO] Initializing git repo...
-    git init
-    git branch -M main
-    git config user.email "bot@iptv.local"
-    git config user.name "IPTV Bot"
-)
-git remote get-url origin >nul 2>&1
-if errorlevel 1 (
-    git remote add origin https://github.com/mahdiridoy/Tv.git
-)
-git config credential.helper store
-
-REM ── Pull latest first to avoid conflicts ──
-echo.
-echo =====================================
-echo Pulling latest from GitHub...
-echo =====================================
-git pull --rebase origin main
-if errorlevel 1 (
-    echo [WARN] Pull failed, trying force pull...
-    git fetch origin main
-    git reset --hard origin/main
-)
-
-REM ── Stage and push ──
+REM ── Push mahdi_iptv.m3u8 + mahdi_scan_stats.json ──
 echo.
 echo =====================================
 echo Pushing to GitHub (main branch)
@@ -126,7 +119,7 @@ if errorlevel 1 (
 
 echo.
 echo =====================================
-echo DONE! Output saved to merged.m3u
+echo DONE! Output: mahdi_iptv.m3u8
 echo GitHub Pages link: https://mahdiridoy.github.io/Tv/mahdi_iptv.m3u8
 echo =====================================
 pause
