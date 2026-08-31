@@ -65,7 +65,7 @@ if errorlevel 1 goto :error
 
 echo.
 echo =====================================
-echo Copying to mahdi_iptv.m3u8 for GitHub
+echo Copying to mahdi_iptv.m3u8
 echo =====================================
 copy /Y merged.m3u mahdi_iptv.m3u8
 
@@ -83,26 +83,45 @@ if errorlevel 1 (
 )
 git config credential.helper store
 
-REM ── Push mahdi_iptv.m3u8 + mahdi_scan_stats.json to main ──
+REM ── Pull latest first to avoid conflicts ──
+echo.
+echo =====================================
+echo Pulling latest from GitHub...
+echo =====================================
+git pull --rebase origin main
+if errorlevel 1 (
+    echo [WARN] Pull failed, trying force pull...
+    git fetch origin main
+    git reset --hard origin/main
+)
+
+REM ── Stage and push ──
 echo.
 echo =====================================
 echo Pushing to GitHub (main branch)
 echo =====================================
 
 git add mahdi_iptv.m3u8 mahdi_scan_stats.json
-git diff --cached --quiet
+git commit -m "Auto update: mahdi_iptv.m3u8 [%date% %time%]"
+
+REM ── Retry push up to 3 times ──
+set RETRY=0
+:push_retry
+git push origin main
 if errorlevel 1 (
-    git commit -m "Auto update: mahdi_iptv.m3u8"
-    git push origin main
-    if errorlevel 1 (
-        echo.
-        echo [WARN] Git push failed. Check internet connection.
+    set /a RETRY+=1
+    if %RETRY% lss 3 (
+        echo [WARN] Push failed, retrying in 5 seconds... (%RETRY%/3)
+        timeout /t 5 /nobreak >nul
+        goto :push_retry
     ) else (
-        echo [OK] Pushed to GitHub successfully!
-        echo [OK] Telegram notification will be sent by GitHub Actions.
+        echo.
+        echo [ERROR] Push failed after 3 attempts.
+        echo         Check your internet connection.
     )
 ) else (
-    echo [INFO] No changes to push.
+    echo [OK] Pushed to GitHub successfully!
+    echo [OK] Telegram notification will be sent automatically.
 )
 
 echo.
