@@ -109,19 +109,10 @@ def check_url(extinf_url):
 
         status = r.status_code
 
-        # STRICT: only 200-299 with actual data = alive
+        # STRICT: 200-299 ONLY with real data = alive. Everything else = DEAD.
         if 200 <= status < 300 and len(chunk) > 0:
-            # Double check: reject if data looks like an error page
-            sample = chunk[:200].decode("utf-8", errors="ignore").lower()
-            error_signals = ["403 forbidden", "404 not found", "access denied",
-                             "server error", "bad gateway", "service unavailable",
-                             "error", "cloudflare"]
-            for sig in error_signals:
-                if sig in sample:
-                    return extinf, url, False, status, latency
             return extinf, url, True, status, latency
-        else:
-            return extinf, url, False, status, latency
+        return extinf, url, False, status, latency
 
     except requests.exceptions.Timeout:
         return extinf, url, False, 0, 0
