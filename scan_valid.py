@@ -139,6 +139,7 @@ def main():
     parser = argparse.ArgumentParser(description="Simple M3U link scanner")
     parser.add_argument("input", nargs="?", default="merged.m3u")
     parser.add_argument("output", nargs="?", default="merged.m3u")
+    parser.add_argument("--stats-file", default="scan_stats.json", help="JSON file to write scan stats")
     args = parser.parse_args()
 
     if not os.path.exists(args.input):
@@ -158,7 +159,7 @@ def main():
     log.info(f"Saved {len(valid_entries)} valid channels -> {args.output}")
 
     # Save stats JSON for Telegram notification
-    stats_file = os.path.join(os.path.dirname(args.output) or ".", "scan_stats.json")
+    stats_file = args.stats_file
     with open(stats_file, "w", encoding="utf-8") as f:
         json.dump(stats, f)
     log.info(f"Stats saved -> {stats_file}")

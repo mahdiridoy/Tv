@@ -60,49 +60,41 @@ echo.
 echo =====================================
 echo Running scan_valid.py (link validation)
 echo =====================================
-python scan_valid.py merged.m3u merged.m3u
+python scan_valid.py merged.m3u merged.m3u --stats-file mahdi_scan_stats.json
 if errorlevel 1 goto :error
 
 echo.
 echo =====================================
-echo Copying to mahdi_iptv.m3u8 for GitHub Pages
+echo Copying to mahdi_iptv.m3u8 for GitHub
 echo =====================================
 copy /Y merged.m3u mahdi_iptv.m3u8
 
-REM ── Push ONLY mahdi_iptv.m3u8 to GitHub Pages branch ──
+REM ── Push mahdi_iptv.m3u8 + mahdi_scan_stats.json to main branch ──
 echo.
 echo =====================================
-echo Pushing mahdi_iptv.m3u8 to GitHub (gh-pages branch)
+echo Pushing to GitHub (main branch)
 echo =====================================
 
-set "TEMP_DIR=%TEMP%\gh-pages-push-%RANDOM%"
-mkdir "%TEMP_DIR%"
-copy /Y mahdi_iptv.m3u8 "%TEMP_DIR%\mahdi_iptv.m3u8" >nul
-copy /Y scan_stats.json "%TEMP_DIR%\scan_stats.json" >nul
-
-pushd "%TEMP_DIR%"
-git init
-git config user.email "bot@iptv.local"
-git config user.name "IPTV Bot"
-git branch -M gh-pages
-git remote add origin https://github.com/mahdiridoy/Tv.git
-git config credential.helper store
-git add mahdi_iptv.m3u8 scan_stats.json
-git commit -m "Auto update: mahdi_iptv.m3u8"
-git push -u origin gh-pages --force
-set "PUSH_RESULT=%ERRORLEVEL%"
-popd
-
-if %PUSH_RESULT% neq 0 (
-    echo.
-    echo [WARN] Git push failed (network or auth error).
-    echo        The local merged.m3u is still saved.
-    echo        Try again later or check your internet connection.
+git add mahdi_iptv.m3u8 mahdi_scan_stats.json
+git diff --cached --quiet
+if errorlevel 1 (
+    git commit -m "Auto update: mahdi_iptv.m3u8"
+    git push origin main
+    set "PUSH_OK=1"
 ) else (
-    echo [OK] Pushed to GitHub successfully!
+    echo [INFO] No changes to push.
+    set "PUSH_OK=0"
 )
 
-rd /s /q "%TEMP_DIR%" 2>nul
+if "%PUSH_OK%"=="1" (
+    echo [OK] Pushed to GitHub successfully!
+) else if "%PUSH_OK%"=="0" (
+    echo [INFO] Nothing new.
+) else (
+    echo.
+    echo [WARN] Git push failed.
+    echo        Check your internet connection.
+)
 
 echo.
 echo =====================================

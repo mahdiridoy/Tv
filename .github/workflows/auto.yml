@@ -44,23 +44,19 @@ jobs:
         run: python order_m3u.py
 
       - name: Run Link Validation
-        run: python scan_valid.py merged.m3u merged.m3u
+        run: python scan_valid.py merged.m3u merged.m3u --stats-file ridoy_scan_stats.json
 
       - name: Prepare output file
         run: cp merged.m3u ridoyiptv.m3u
 
-      # Push ONLY ridoyiptv.m3u to gh-pages branch
-      - name: Push to gh-pages branch
+      - name: Push to main branch
         run: |
-          TEMP_DIR=$(mktemp -d)
-          cp ridoyiptv.m3u "$TEMP_DIR/ridoyiptv.m3u"
-          cp scan_stats.json "$TEMP_DIR/scan_stats.json"
-          cd "$TEMP_DIR"
-          git init
           git config user.email "bot@iptv.local"
           git config user.name "IPTV Bot"
-          git branch -M gh-pages
-          git remote add origin https://github.com/${{ github.repository }}.git
-          git add ridoyiptv.m3u scan_stats.json
-          git commit -m "Auto update: ridoyiptv.m3u"
-          git push -u origin gh-pages --force
+          git add ridoyiptv.m3u ridoy_scan_stats.json
+          if ! git diff --cached --quiet; then
+            git commit -m "Auto update: ridoyiptv.m3u"
+            git push origin main
+          else
+            echo "No changes to push."
+          fi

@@ -1,8 +1,11 @@
-name: Telegram Notify on gh-pages Push
+name: Telegram Notify on Push
 
 on:
   push:
-    branches: [gh-pages]
+    branches: [main]
+    paths:
+      - 'mahdi_iptv.m3u8'
+      - 'ridoyiptv.m3u'
 
 jobs:
   notify:
@@ -10,10 +13,10 @@ jobs:
     timeout-minutes: 5
 
     steps:
-      - name: Checkout gh-pages
+      - name: Checkout main
         uses: actions/checkout@v4
         with:
-          ref: gh-pages
+          fetch-depth: 2
 
       - name: Send Telegram notification
         env:
@@ -21,7 +24,7 @@ jobs:
           TG_CHAT: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: |
           python -c "
-          import os, json, urllib.parse, urllib.request
+          import os, json, urllib.parse, urllib.request, subprocess
 
           token = os.environ.get('TG_TOKEN', '')
           chat_id = os.environ.get('TG_CHAT', '')
@@ -31,25 +34,24 @@ jobs:
               exit(0)
 
           # Detect which file was updated
-          import subprocess
-          diff = subprocess.run(['git', 'log', '-1', '--name-only', '--pretty=format:'], capture_output=True, text=True).stdout.strip()
+          diff = subprocess.run(['git', 'diff', '--name-only', 'HEAD~1', 'HEAD'], capture_output=True, text=True).stdout.strip()
           files = diff.split('\n')
 
           if 'mahdi_iptv.m3u8' in files:
               filename = 'mahdi_iptv.m3u8'
               url = 'https://mahdiridoy.github.io/Tv/mahdi_iptv.m3u8'
               source = 'run2.bat (local)'
+              stats_file = 'mahdi_scan_stats.json'
           elif 'ridoyiptv.m3u' in files:
               filename = 'ridoyiptv.m3u'
               url = 'https://mahdiridoy.github.io/Tv/ridoyiptv.m3u'
               source = 'auto.yml (GitHub Actions)'
+              stats_file = 'ridoy_scan_stats.json'
           else:
-              filename = ', '.join(files)
-              url = 'https://mahdiridoy.github.io/Tv/'
-              source = 'unknown'
+              print('No playlist file changed, skipping')
+              exit(0)
 
           # Read scan stats
-          stats_file = 'scan_stats.json'
           if os.path.exists(stats_file):
               with open(stats_file) as f:
                   stats = json.load(f)
