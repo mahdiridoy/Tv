@@ -105,6 +105,13 @@ if errorlevel 1 (
 
 rd /s /q "%TEMP_DIR%" 2>nul
 
+REM ── Send Telegram notification ──
+echo.
+echo =====================================
+echo Sending Telegram notification
+echo =====================================
+python -c "import os,urllib.parse,urllib.request;t=os.environ.get('TELEGRAM_BOT_TOKEN','');c=os.environ.get('TELEGRAM_CHAT_ID','');urllib.request.urlopen(urllib.request.Request(f'https://api.telegram.org/bot{t}/sendMessage',data=urllib.parse.urlencode({'chat_id':c,'text':'📺 Pipeline DONE! File: mahdi_iptv.m3u8 uploaded to GitHub Pages.','parse_mode':'HTML'}).encode(),method='POST'),timeout=10) if t and c else print('[WARN] TELEGRAM_BOT_TOKEN or TELEGRAM_CHAT_ID not set')"
+
 echo.
 echo =====================================
 echo DONE! Output saved to merged.m3u

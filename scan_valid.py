@@ -12,9 +12,15 @@ import argparse
 import logging
 import os
 import sys
+import urllib.parse
+import urllib.request
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 import cloudscraper
+
+# ── Telegram Config (from environment variables) ─────────────────────────────
+TG_BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "")
+TG_CHAT_ID = os.environ.get("TELEGRAM_CHAT_ID", "")
 
 logging.basicConfig(
     level=logging.INFO,
@@ -68,6 +74,27 @@ def write_m3u(filepath, entries):
         for extinf, url in entries:
             f.write(f"{extinf}\n")
             f.write(f"{url}\n")
+
+
+# ── Telegram Notification ────────────────────────────────────────────────────
+
+def send_telegram(message):
+    """Send a message to Telegram bot."""
+    try:
+        url = f"https://api.telegram.org/bot{TG_BOT_TOKEN}/sendMessage"
+        data = urllib.parse.urlencode({
+            "chat_id": TG_CHAT_ID,
+            "text": message,
+            "parse_mode": "HTML",
+        }).encode("utf-8")
+        req = urllib.request.Request(url, data=data, method="POST")
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            if resp.status == 200:
+                log.info("Telegram notification sent!")
+            else:
+                log.warning(f"Telegram returned status {resp.status}")
+    except Exception as e:
+        log.warning(f"Telegram notification failed: {e}")
 
 
 # ── Simple HTTP Check ────────────────────────────────────────────────────────
@@ -156,6 +183,16 @@ def main():
     print(f"  Valid  : {stats['alive']}")
     print(f"  Dead   : {stats['dead']}")
     print(f"{'='*50}\n")
+
+    # Send Telegram notification
+    msg = (
+        f"<b>📺 IPTV Scan Complete</b>\n\n"
+        f"Total : {stats['total']}\n"
+        f"Valid : {stats['alive']}\n"
+        f"Dead  : {stats['dead']}\n\n"
+        f"Output: {args.output}"
+    )
+    send_telegram(msg)
 
 
 if __name__ == "__main__":
