@@ -69,45 +69,41 @@ echo Copying to mahdi_iptv.m3u8 for GitHub Pages
 echo =====================================
 copy /Y merged.m3u mahdi_iptv.m3u8
 
-REM ── Setup git repo if not already one ──
-if not exist ".git" (
-    echo.
-    echo [INFO] Initializing git repo...
-    git init
-    git branch -M main
-    git remote add origin https://github.com/mahdiridoy/Tv.git
-    git config credential.helper store
-    echo [INFO] Git repo initialized. First push will ask for username + token.
-    echo [INFO] Token: https://github.com/settings/tokens (check "repo" scope)
-)
-
+REM ── Push ONLY mahdi_iptv.m3u8 to GitHub Pages branch ──
 echo.
 echo =====================================
-echo Pushing to GitHub
+echo Pushing mahdi_iptv.m3u8 to GitHub (gh-pages branch)
 echo =====================================
-git add mahdi_iptv.m3u8 merged.m3u sources2.txt
-git diff --cached --quiet
+
+set "TEMP_DIR=%TEMP%\gh-pages-push-%RANDOM%"
+mkdir "%TEMP_DIR%"
+copy /Y mahdi_iptv.m3u8 "%TEMP_DIR%\mahdi_iptv.m3u8" >nul
+
+pushd "%TEMP_DIR%"
+git init
+git config user.email "bot@iptv.local"
+git config user.name "IPTV Bot"
+git branch -M gh-pages
+git remote add origin https://github.com/mahdiridoy/Tv.git
+git config credential.helper store
+git add mahdi_iptv.m3u8
+git commit -m "Auto update: playlist"
+git push -u origin gh-pages --force
+popd
+
 if errorlevel 1 (
-    git commit -m "Auto update: playlist"
-    git push -u origin main
-    if errorlevel 1 (
-        echo.
-        echo [WARN] Git push failed.
-        echo        Run this ONCE in this project folder:
-        echo.
-        echo          git config credential.helper store
-        echo          git push -u origin main
-        echo.
-        echo        Enter username + token when asked. Saved forever after that.
-        echo        Token: https://github.com/settings/tokens (勾选 "repo")
-        echo.
-        echo        The local merged.m3u is still saved.
-    ) else (
-        echo [OK] Pushed to GitHub successfully!
-    )
+    echo.
+    echo [WARN] Git push failed.
+    echo        Run this ONCE anywhere to save credentials:
+    echo.
+    echo          git config credential.helper store
+    echo.
+    echo        Token: https://github.com/settings/tokens (勾选 "repo")
 ) else (
-    echo [INFO] No changes to push.
+    echo [OK] Pushed to GitHub successfully!
 )
+
+rd /s /q "%TEMP_DIR%" 2>nul
 
 echo.
 echo =====================================

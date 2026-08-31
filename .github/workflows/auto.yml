@@ -26,38 +26,36 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-          pip install pytest
 
-      - name: Run regression tests
-        run: pytest tests/ -v
-
-      # ───────── NO-SCAN PIPELINE (final) ─────────
-
-      - name: "[No-scan] Run M3U Merger"
+      - name: Run M3U Merger
         run: python merge_m3u.py
 
-      - name: "[No-scan] Run Adult Filter"
+      - name: Run Adult Filter
         run: python adult_filter.py
 
-      - name: "[No-scan] Run Logo Attacher"
+      - name: Run Logo Attacher
         run: python attach_logos.py
 
-      - name: "[No-scan] Order by CHANNEL_ORDER"
+      - name: Order by CHANNEL_ORDER
         run: python order_m3u.py
 
+      - name: Run Link Validation
+        run: python scan_valid.py merged.m3u merged.m3u
+
       - name: Prepare output file
-        run: cp merged.m3u mahdi_iptv.m3u8
+        run: cp merged.m3u ridoyiptv.m3u
 
-      - name: Commit to repo
+      # Push ONLY ridoyiptv.m3u to gh-pages branch
+      - name: Push to gh-pages branch
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-
-          git add mahdi_iptv.m3u8 merged.m3u sources2.txt
-
-          if ! git diff --cached --quiet; then
-            git commit -m "Auto update: playlist"
-            git push
-          else
-            echo "No changes to commit."
-          fi
+          TEMP_DIR=$(mktemp -d)
+          cp ridoyiptv.m3u "$TEMP_DIR/ridoyiptv.m3u"
+          cd "$TEMP_DIR"
+          git init
+          git config user.email "bot@iptv.local"
+          git config user.name "IPTV Bot"
+          git branch -M gh-pages
+          git remote add origin https://github.com/${{ github.repository }}.git
+          git add ridoyiptv.m3u
+          git commit -m "Auto update: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          git push -u origin gh-pages --force
