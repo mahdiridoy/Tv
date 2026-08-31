@@ -88,6 +88,12 @@ echo =====================================
 python scan_valid.py merged.m3u mahdi_iptv.m3u8 --stats-file mahdi_scan_stats.json
 if errorlevel 1 goto :error
 
+REM ── Cooldown: let DNS recover after heavy scan ──
+echo.
+echo Waiting 10 seconds for DNS to recover after scan...
+timeout /t 10 /nobreak >nul
+ipconfig /flushdns >nul 2>&1
+
 REM ── Push mahdi_iptv.m3u8 + mahdi_scan_stats.json ──
 echo.
 echo =====================================
@@ -104,8 +110,9 @@ git push origin main
 if errorlevel 1 (
     set /a RETRY+=1
     if %RETRY% lss 3 (
-        echo [WARN] Push failed, retrying in 5 seconds... (%RETRY%/3)
-        timeout /t 5 /nobreak >nul
+        echo [WARN] Push failed, retrying in 15 seconds... (%RETRY%/3)
+        ipconfig /flushdns >nul 2>&1
+        timeout /t 15 /nobreak >nul
         goto :push_retry
     ) else (
         echo.
