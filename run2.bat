@@ -69,7 +69,21 @@ echo Copying to mahdi_iptv.m3u8 for GitHub
 echo =====================================
 copy /Y merged.m3u mahdi_iptv.m3u8
 
-REM ── Push mahdi_iptv.m3u8 + mahdi_scan_stats.json to main branch ──
+REM ── Setup git repo if needed ──
+if not exist ".git" (
+    echo [INFO] Initializing git repo...
+    git init
+    git branch -M main
+    git config user.email "bot@iptv.local"
+    git config user.name "IPTV Bot"
+)
+git remote get-url origin >nul 2>&1
+if errorlevel 1 (
+    git remote add origin https://github.com/mahdiridoy/Tv.git
+)
+git config credential.helper store
+
+REM ── Push mahdi_iptv.m3u8 + mahdi_scan_stats.json to main ──
 echo.
 echo =====================================
 echo Pushing to GitHub (main branch)
@@ -80,20 +94,15 @@ git diff --cached --quiet
 if errorlevel 1 (
     git commit -m "Auto update: mahdi_iptv.m3u8"
     git push origin main
-    set "PUSH_OK=1"
+    if errorlevel 1 (
+        echo.
+        echo [WARN] Git push failed. Check internet connection.
+    ) else (
+        echo [OK] Pushed to GitHub successfully!
+        echo [OK] Telegram notification will be sent by GitHub Actions.
+    )
 ) else (
     echo [INFO] No changes to push.
-    set "PUSH_OK=0"
-)
-
-if "%PUSH_OK%"=="1" (
-    echo [OK] Pushed to GitHub successfully!
-) else if "%PUSH_OK%"=="0" (
-    echo [INFO] Nothing new.
-) else (
-    echo.
-    echo [WARN] Git push failed.
-    echo        Check your internet connection.
 )
 
 echo.
