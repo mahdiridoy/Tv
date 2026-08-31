@@ -90,16 +90,14 @@ git config credential.helper store
 git add mahdi_iptv.m3u8 scan_stats.json
 git commit -m "Auto update: mahdi_iptv.m3u8"
 git push -u origin gh-pages --force
+set "PUSH_RESULT=%ERRORLEVEL%"
 popd
 
-if errorlevel 1 (
+if %PUSH_RESULT% neq 0 (
     echo.
-    echo [WARN] Git push failed.
-    echo        Run this ONCE anywhere to save credentials:
-    echo.
-    echo          git config credential.helper store
-    echo.
-    echo        Token: https://github.com/settings/tokens (勾选 "repo")
+    echo [WARN] Git push failed (network or auth error).
+    echo        The local merged.m3u is still saved.
+    echo        Try again later or check your internet connection.
 ) else (
     echo [OK] Pushed to GitHub successfully!
 )
