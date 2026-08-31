@@ -1,4 +1,3 @@
-https://raw.githubusercontent.com/mahdiridoy/Tv/refs/heads/main/my-iptv-channels_filtered.m3u8
 https://mahdiridoy.github.io/codecloudebd/playlist/fifa_tv.m3u
 https://github.com/abusaeeidx/Mrgify-BDIX-IPTV/raw/main/playlist.m3u
 https://raw.githubusercontent.com/ahan443/FAST-IPTV/refs/heads/main/FIFA.m3u

@@ -17,8 +17,7 @@ import os
 import re
 
 from config import CHANNEL_ORDER
-from utils import clean_name, parse_extinf_attrs
-from processor import order_rank
+from utils import clean_name, parse_extinf_attrs, order_rank
 
 logging.basicConfig(
     level=logging.INFO,

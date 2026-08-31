@@ -199,4 +199,28 @@ def clean_name(name: str) -> str:
     name = re.sub(r'\b(FHD|4K|UHD|SD)\b', '', name, flags=re.I)  # quality words
     name = re.sub(r'\s+', ' ', name)
     return name.strip()
+
+
+# ── Channel Ordering ─────────────────────────────────────────────────────────
+
+from config import CHANNEL_ORDER
+
+
+def _kw_pattern(kw: str) -> re.Pattern:
+    """Word-boundary-safe regex for keyword matching."""
+    left  = r"\b" if kw[0].isalnum()  else ""
+    right = r"\b" if kw[-1].isalnum() else ""
+    return re.compile(left + re.escape(kw) + right, re.IGNORECASE)
+
+
+_ORDER_PATTERNS = [_kw_pattern(kw) for kw in CHANNEL_ORDER]
+
+
+def order_rank(name: str) -> int | None:
+    """Return the index of the first CHANNEL_ORDER keyword matching the name,
+    or None if no keyword matches."""
+    for i, pattern in enumerate(_ORDER_PATTERNS):
+        if pattern.search(name):
+            return i
+    return None
     
