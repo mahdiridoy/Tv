@@ -38,14 +38,14 @@ jobs:
           files = diff.split('\n')
 
           if 'mahdi_iptv.m3u8' in files:
-              filename = 'mahdi_iptv.m3u8'
+              filename = 'MAHDI IPTV'
               url = 'https://mahdiridoy.github.io/Tv/mahdi_iptv.m3u8'
-              source = 'run2.bat (local)'
+              source = 'LOCAL CHECK'
               stats_file = 'mahdi_scan_stats.json'
           elif 'ridoyiptv.m3u' in files:
-              filename = 'ridoyiptv.m3u'
+              filename = 'RIDOY IPTV'
               url = 'https://mahdiridoy.github.io/Tv/ridoyiptv.m3u'
-              source = 'auto.yml (GitHub Actions)'
+              source = 'ONLINE CHECK'
               stats_file = 'ridoy_scan_stats.json'
           else:
               print('No playlist file changed, skipping')
