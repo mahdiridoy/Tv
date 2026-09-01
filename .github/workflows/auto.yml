@@ -89,12 +89,15 @@ jobs:
           raw_ts=subprocess.run(['git','log','-1','--pretty=format:%ci'],capture_output=True,text=True).stdout.strip()
           try:
               from datetime import datetime
+              from zoneinfo import ZoneInfo
               dt=datetime.strptime(raw_ts, '%Y-%m-%d %H:%M:%S %z')
-              ts_tmp=dt.strftime('%Y-%m-%d %I:%M:%S %p %z')
+              dt_bd=dt.astimezone(ZoneInfo('Asia/Dhaka'))
+              ts_tmp=dt_bd.strftime('%Y-%m-%d %I:%M:%S %p %z')
               ts=ts_tmp[:-2]+':'+ts_tmp[-2:]
-          except Exception:
+          except Exception as e:
+              print(f'Time convert error: {e}')
               ts=raw_ts
-          msg=(f'\u2705 Pulse Stream\n\U0001f4fa Live Channel: {valid}\n\U0001f552 {ts}')
+          msg=(f'\u2705 Ridoy IPTV\n\U0001f4fa Live Channel: {valid}\n\U0001f552 {ts}')
           tg_url=f'https://api.telegram.org/bot{token}/sendMessage'
           data=urllib.parse.urlencode({'chat_id':chat_id,'text':msg}).encode()
           try:
