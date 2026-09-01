@@ -24,41 +24,54 @@ jobs:
           TG_CHAT: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: |
           python -c "
-          import os, json, urllib.parse, urllib.request, subprocess
+          import os, json, urllib.parse, urllib.request, subprocess, sys
 
           token = os.environ.get('TG_TOKEN', '')
           chat_id = os.environ.get('TG_CHAT', '')
 
           if not token or not chat_id:
-              print('Telegram secrets not set, skipping')
-              exit(0)
+              print('ERROR: Telegram secrets not set')
+              sys.exit(0)
 
-          # Detect which file was updated
-          diff = subprocess.run(['git', 'diff', '--name-only', 'HEAD~1', 'HEAD'], capture_output=True, text=True).stdout.strip()
-          files = diff.split('\n')
+          # Detect which file was updated - check last 5 commits for safety
+          diff = subprocess.run(['git', 'diff', '--name-only', 'HEAD~5', 'HEAD'], capture_output=True, text=True).stdout.strip()
+          files = diff.split('\n') if diff else []
+          
+          # Also check what files exist in the commit
+          commit_files = subprocess.run(['git', 'show', '--name-only', '--pretty=format:', 'HEAD'], capture_output=True, text=True).stdout.strip()
+          all_files = set(files + commit_files.split('\n') if commit_files else files)
 
-          if 'mahdi_iptv.m3u8' in files:
+          filename = None
+          url = None
+          source = None
+          stats_file = None
+
+          if 'mahdi_iptv.m3u8' in all_files:
               filename = 'MAHDI IPTV'
               source = 'LOCAL CHECK'
               stats_file = 'mahdi_scan_stats.json'
-          elif 'ridoyiptv.m3u' in files:
+          elif 'ridoyiptv.m3u' in all_files:
               filename = 'RIDOY IPTV'
               source = 'ONLINE CHECK'
               stats_file = 'ridoy_scan_stats.json'
           else:
               print('No playlist file changed, skipping')
-              exit(0)
+              print(f'Files in diff: {files}')
+              print(f'Files in commit: {commit_files}')
+              sys.exit(0)
 
           # Read scan stats
+          total = valid = dead = latency = '?'
           if os.path.exists(stats_file):
-              with open(stats_file) as f:
-                  stats = json.load(f)
-              total = stats.get('total', '?')
-              valid = stats.get('alive', '?')
-              dead = stats.get('dead', '?')
-              latency = stats.get('avg_latency_ms', '?')
-          else:
-              total = valid = dead = latency = '?'
+              try:
+                  with open(stats_file) as f:
+                      stats = json.load(f)
+                  total = stats.get('total', '?')
+                  valid = stats.get('alive', '?')
+                  dead = stats.get('dead', '?')
+                  latency = stats.get('avg_latency_ms', '?')
+              except Exception as e:
+                  print(f'Error reading stats: {e}')
 
           # Get commit hash and timestamp
           commit = subprocess.run(['git', 'log', '-1', '--pretty=format:%h'], capture_output=True, text=True).stdout.strip()
@@ -76,6 +89,10 @@ jobs:
 
           tg_url = f'https://api.telegram.org/bot{token}/sendMessage'
           data = urllib.parse.urlencode({'chat_id': chat_id, 'text': msg}).encode()
-          urllib.request.urlopen(urllib.request.Request(tg_url, data=data, method='POST'), timeout=10)
-          print('Telegram notification sent!')
+          try:
+              urllib.request.urlopen(urllib.request.Request(tg_url, data=data, method='POST'), timeout=10)
+              print('Telegram notification sent!')
+          except Exception as e:
+              print(f'Telegram error: {e}')
+              sys.exit(1)
           "
