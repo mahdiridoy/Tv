@@ -1,10 +1,15 @@
 import re
 import time
 import requests
-import cloudscraper
+from requests.adapters import HTTPAdapter
+
 HEADERS={"User-Agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36","Accept":"*/*","Accept-Language":"en-US,en;q=0.9","Connection":"keep-alive"}
-scraper=cloudscraper.create_scraper(browser={"browser":"chrome","platform":"windows","mobile":False})
-scraper.headers.update(HEADERS)
+# Plain requests session — NO retries, NO cloudscraper
+session = requests.Session()
+session.headers.update(HEADERS)
+adapter = HTTPAdapter(max_retries=0)
+session.mount("http://", adapter)
+session.mount("https://", adapter)
 
 from urllib.parse import urljoin
 from config import CHECK_TIMEOUT, CHECK_RETRIES, MIN_THROUGHPUT_KBPS, READ_WINDOW
@@ -120,9 +125,9 @@ def check_stream(url: str) -> tuple[bool, float | None, str]:
     try:
         current_url = url
         for depth in range(_MAX_MANIFEST_DEPTH + 1):
-            with scraper.get(
+            with session.get(
                 current_url, timeout=(CHECK_TIMEOUT, CHECK_TIMEOUT),
-                stream=True, headers=HEADERS, allow_redirects=True,
+                stream=True, allow_redirects=True,
             ) as r:
                 if r.status_code >= 400:
                     return False, None, f"dead:status-{r.status_code}"
