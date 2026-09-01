@@ -48,10 +48,12 @@ jobs:
 
           if 'mahdi_iptv.m3u8' in all_files:
               filename = 'MAHDI IPTV'
+              url = 'https://mahdiridoy.github.io/Tv/mahdi_iptv.m3u8'
               source = 'LOCAL CHECK'
               stats_file = 'mahdi_scan_stats.json'
           elif 'ridoyiptv.m3u' in all_files:
               filename = 'RIDOY IPTV'
+              url = 'https://mahdiridoy.github.io/Tv/ridoyiptv.m3u'
               source = 'ONLINE CHECK'
               stats_file = 'ridoy_scan_stats.json'
           else:
