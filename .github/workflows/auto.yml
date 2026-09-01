@@ -20,6 +20,9 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GH_PAT || secrets.GITHUB_TOKEN }}
+          persist-credentials: true
 
       - name: Setup Python
         uses: actions/setup-python@v5
@@ -56,6 +59,38 @@ jobs:
         run: |
           git config user.email "bot@iptv.local"
           git config user.name "IPTV Bot"
+          # If GH_PAT exists, use it so push triggers notify.yml
+          if [ -n "${{ secrets.GH_PAT }}" ]; then
+            git remote set-url origin https://x-access-token:${{ secrets.GH_PAT }}@github.com/${{ github.repository }}.git
+            echo "Using GH_PAT for push (will trigger notify.yml)"
+          fi
           git add ridoyiptv.m3u ridoy_scan_stats.json
           git commit -m "Auto update: ridoyiptv.m3u [$(date -u)]"
           git push origin main
+
+      - name: Send Telegram notification (direct - works even without GH_PAT)
+        if: success()
+        env:
+          TG_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TG_CHAT: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          python -c "
+          import os, json, urllib.parse, urllib.request, subprocess
+          token = os.environ.get('TG_TOKEN','')
+          chat_id = os.environ.get('TG_CHAT','')
+          if not token or not chat_id:
+              print('Telegram secrets missing, skip')
+              exit(0)
+          stats_file='ridoy_scan_stats.json'
+          if os.path.exists(stats_file):
+              with open(stats_file) as f: s=json.load(f)
+              valid=s.get('alive','?'); dead=s.get('dead','?'); latency=s.get('avg_latency_ms','?')
+          else: valid=dead=latency='?'
+          commit=subprocess.run(['git','log','-1','--pretty=format:%h'],capture_output=True,text=True).stdout.strip()
+          ts=subprocess.run(['git','log','-1','--pretty=format:%ci'],capture_output=True,text=True).stdout.strip()
+          msg=(f'\u2705 IPTV playlist updated - RIDOY IPTV\n\U0001f552 {ts}   ({commit})\n\n\U0001f4fa Final channels: {valid}\n\U0001f5d1\ufe0f Removed (dead/buffering): {dead}\n\u26a1 Avg latency: {latency} ms\n\n\U0001f517 https://mahdiridoy.github.io/Tv/ridoyiptv.m3u\n\U0001f4e6 Source: ONLINE CHECK')
+          tg_url=f'https://api.telegram.org/bot{token}/sendMessage'
+          data=urllib.parse.urlencode({'chat_id':chat_id,'text':msg}).encode()
+          urllib.request.urlopen(urllib.request.Request(tg_url,data=data,method='POST'),timeout=10)
+          print('Telegram sent for RIDOY IPTV')
+          "
