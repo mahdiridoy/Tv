@@ -1,8 +1,8 @@
 """
 scan_valid.py
 -------------
-Strict link validator: 200-299 + real data + fast response = alive.
-NO retries, NO auto-fix. Slow streams (>3s) are dead (buffering).
+TRIPLE-CHECK validator: 200-299 + real data + fast (<3000ms) must pass 3 TIMES.
+If any of the 3 fails (403/404/500/timeout/slow/empty/error body) -> DEAD.
 
 Usage:
     python scan_valid.py merged.m3u output.m3u --stats-file stats.json
@@ -19,6 +19,8 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 
 import requests
 from requests.adapters import HTTPAdapter
+import urllib3
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 logging.basicConfig(
     level=logging.INFO,
@@ -32,22 +34,26 @@ HEADERS = {
     "Accept": "*/*",
 }
 
-# Plain requests session — NO retries
 session = requests.Session()
 session.headers.update(HEADERS)
 adapter = HTTPAdapter(max_retries=0, pool_connections=500, pool_maxsize=500)
 session.mount("http://", adapter)
 session.mount("https://", adapter)
 
-TIMEOUT = 3             # seconds — hard limit for connect + read
-MAX_LATENCY_MS = 3000   # streams slower than this = buffering = dead
+TIMEOUT = 3
+MAX_LATENCY_MS = 3000
 MAX_WORKERS = 500
+TRIPLE_CHECKS = 3  # must pass 3 times
+
+ERROR_BODY_KEYWORDS = [
+    b"403 forbidden", b"404 not found", b"access denied",
+    b"server error", b"bad gateway", b"service unavailable",
+    b"cloudflare", b"attention required",
+]
 
 
 def _enforce_socket_timeout(response, timeout):
-    """Force socket read timeout so raw.read() cannot block 18 sec."""
     try:
-        # urllib3 v2: response.raw._connection.sock
         sock = response.raw._connection.sock
         if sock:
             sock.settimeout(timeout)
@@ -55,12 +61,71 @@ def _enforce_socket_timeout(response, timeout):
     except Exception:
         pass
     try:
-        # urllib3 v1 / fallback
         sock = response.raw._fp.fp.raw._sock
         if sock:
             sock.settimeout(timeout)
     except Exception:
         pass
+
+
+def _single_probe(url):
+    """One probe: returns (alive, status, latency, reason)."""
+    try:
+        start = time.perf_counter()
+        r = session.get(url, timeout=(TIMEOUT, TIMEOUT), allow_redirects=True, stream=True, verify=False)
+        _enforce_socket_timeout(r, TIMEOUT)
+        chunk = r.raw.read(1024)
+        latency = int((time.perf_counter() - start) * 1000)
+        try:
+            r.close()
+        except Exception:
+            pass
+        status = r.status_code
+
+        if latency > MAX_LATENCY_MS:
+            return False, status, latency, f"slow:{latency}ms"
+        if not (200 <= status < 300):
+            return False, status, latency, f"status:{status}"
+        if len(chunk) == 0:
+            return False, status, latency, "empty"
+        # Check body for error page even when status is 200
+        lower = chunk[:800].lower()
+        for kw in ERROR_BODY_KEYWORDS:
+            if kw in lower:
+                return False, status, latency, f"error_body:{kw.decode()}"
+        return True, status, latency, "ok"
+
+    except (requests.exceptions.Timeout, TimeoutError):
+        return False, 0, 0, "timeout"
+    except requests.exceptions.ConnectionError as e:
+        # SSL expired etc - try without verify already False, so still dead
+        return False, 0, 0, "conn_error"
+    except Exception as e:
+        msg = str(e).lower()
+        if "timed out" in msg or "timeout" in type(e).__name__.lower():
+            return False, 0, 0, "timeout"
+        return False, 0, 0, f"error:{type(e).__name__}"
+
+
+def check_url(extinf_url):
+    """Triple-check: must pass 3 consecutive probes."""
+    extinf, url = extinf_url
+    latencies = []
+    last_status = 0
+    last_reason = ""
+    for attempt in range(TRIPLE_CHECKS):
+        alive, status, latency, reason = _single_probe(url)
+        last_status = status
+        last_reason = reason
+        if not alive:
+            return extinf, url, False, status, latency
+        latencies.append(latency)
+        if attempt < TRIPLE_CHECKS - 1:
+            time.sleep(0.2)  # small gap between checks
+
+    # All 3 passed - use median latency
+    median_lat = int(statistics.median(latencies)) if latencies else 0
+    return extinf, url, True, last_status, median_lat
 
 
 # ── M3U Parsing ──────────────────────────────────────────────────────────────
@@ -94,55 +159,12 @@ def write_m3u(filepath, entries):
             f.write(f"{url}\n")
 
 
-# ── Stream Check ─────────────────────────────────────────────────────────────
-
-def check_url(extinf_url):
-    """Strict single-shot check with enforced read timeout.
-
-    - 200-299 + data + latency <= 3000ms → alive
-    - 403/404/500/502/timeout/empty/slow → DEAD
-    """
-    extinf, url = extinf_url
-    try:
-        start = time.perf_counter()
-        r = session.get(url, timeout=(TIMEOUT, TIMEOUT), allow_redirects=True, stream=True)
-        _enforce_socket_timeout(r, TIMEOUT)
-
-        # This read now respects TIMEOUT via socket timeout
-        chunk = r.raw.read(1024)
-        latency = int((time.perf_counter() - start) * 1000)
-        try:
-            r.close()
-        except Exception:
-            pass
-
-        status = r.status_code
-
-        # Too slow = buffering = dead (fixes 18086ms average)
-        if latency > MAX_LATENCY_MS:
-            return extinf, url, False, status, latency
-
-        if 200 <= status < 300 and len(chunk) > 0:
-            return extinf, url, True, status, latency
-        return extinf, url, False, status, latency
-
-    except (requests.exceptions.Timeout, TimeoutError):
-        return extinf, url, False, 0, 0
-    except requests.exceptions.ConnectionError:
-        return extinf, url, False, 0, 0
-    except Exception as e:
-        # socket.timeout etc lands here
-        if "timed out" in str(e).lower() or "timeout" in type(e).__name__.lower():
-            return extinf, url, False, 0, 0
-        return extinf, url, False, 0, 0
-
-
 def scan_links(entries, workers=MAX_WORKERS):
     total = len(entries)
     if total == 0:
         return [], {"alive": 0, "dead": 0, "total": 0}
 
-    log.info(f"Scanning {total} links (STRICT 200-299, socket timeout {TIMEOUT}s, max {MAX_LATENCY_MS}ms)...")
+    log.info(f"Scanning {total} links TRIPLE-CHECK (3x {TIMEOUT}s, max {MAX_LATENCY_MS}ms, verify=False)...")
 
     results: list[tuple | None] = [None] * total
     dead = 0
@@ -163,13 +185,12 @@ def scan_links(entries, workers=MAX_WORKERS):
                 latencies.append(latency)
             else:
                 dead += 1
-                # Track reason: include slow as separate bucket
                 if status == 0:
                     key = "Timeout/Error"
                 elif latency > MAX_LATENCY_MS:
                     key = f"Slow >{MAX_LATENCY_MS}ms"
                 else:
-                    key = f"HTTP {status}"
+                    key = f"HTTP {status}" if status else "Error"
                 error_counts[key] = error_counts.get(key, 0) + 1
 
             if done % 500 == 0 or done == total:
@@ -177,11 +198,9 @@ def scan_links(entries, workers=MAX_WORKERS):
 
     valid = [r for r in results if r is not None]
 
-    # Accurate latency: median + trimmed mean (capped, no 18s outliers)
     if latencies:
         avg_latency = int(sum(latencies) / len(latencies))
         median_latency = int(statistics.median(latencies))
-        # Also report p95 to show tail
         sorted_lat = sorted(latencies)
         p95 = sorted_lat[int(len(sorted_lat) * 0.95)] if len(sorted_lat) > 20 else sorted_lat[-1]
     else:
@@ -204,10 +223,8 @@ def scan_links(entries, workers=MAX_WORKERS):
     }
 
 
-# ── Main ──────────────────────────────────────────────────────────────────────
-
 def main():
-    parser = argparse.ArgumentParser(description="STRICT M3U scanner with enforced timeout")
+    parser = argparse.ArgumentParser(description="TRIPLE-CHECK M3U scanner")
     parser.add_argument("input", nargs="?", default="merged.m3u")
     parser.add_argument("output", nargs="?", default="merged.m3u")
     parser.add_argument("--stats-file", default="scan_stats.json", help="JSON file to write scan stats")
@@ -234,7 +251,7 @@ def main():
     log.info(f"Stats saved -> {args.stats_file}")
 
     print(f"\n{'='*50}")
-    print(f"  SCAN RESULTS")
+    print(f"  SCAN RESULTS (TRIPLE-CHECK)")
     print(f"{'='*50}")
     print(f"  Total      : {stats['total']}")
     print(f"  Valid      : {stats['alive']}")
