@@ -47,6 +47,7 @@ jobs:
         env:
           TG_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TG_CHAT: ${{ secrets.TELEGRAM_CHAT_ID }}
+          TG_CHANNEL: ${{ secrets.TELEGRAM_CHANNEL }}
         run: |
           python -c "
           import os, json, urllib.parse, urllib.request, subprocess, sys
@@ -116,15 +117,37 @@ jobs:
           tg_url = f'https://api.telegram.org/bot{token}/sendMessage'
           data = urllib.parse.urlencode({'chat_id': chat_id, 'text': msg}).encode()
           try:
-              urllib.request.urlopen(urllib.request.Request(tg_url, data=data, method='POST'), timeout=10)
-              print('Telegram notification sent to chat!')
+              resp = urllib.request.urlopen(urllib.request.Request(tg_url, data=data, method='POST'), timeout=10)
+              print('Telegram notification sent to chat! Response:', resp.read().decode()[:200])
           except Exception as e:
               print(f'Telegram error (chat): {e}')
+              try:
+                  import urllib.error
+                  print(e.read().decode() if hasattr(e, 'read') else '')
+              except: pass
           # Also forward to channel @liveapkpulse
+          channel_id = os.environ.get('TG_CHANNEL', '@liveapkpulse')
+          print(f'Forwarding to channel: {channel_id}')
           try:
-              ch_data = urllib.parse.urlencode({'chat_id': '@liveapkpulse', 'text': msg}).encode()
-              urllib.request.urlopen(urllib.request.Request(tg_url, data=ch_data, method='POST'), timeout=10)
-              print('Telegram forwarded to @liveapkpulse!')
+              ch_data = urllib.parse.urlencode({'chat_id': channel_id, 'text': msg}).encode()
+              resp = urllib.request.urlopen(urllib.request.Request(tg_url, data=ch_data, method='POST'), timeout=10)
+              print('Telegram forwarded to channel! Response:', resp.read().decode()[:300])
           except Exception as e:
-              print(f'Telegram error (channel): {e}')
+              print(f'Telegram error (channel {channel_id}): {e}')
+              try:
+                  body = e.read().decode() if hasattr(e, 'read') else ''
+                  print('Channel error body:', body)
+                  # Common errors:
+                  if 'chat not found' in body.lower():
+                      print('HINT: Channel @liveapkpulse not found or bot not admin. Make bot ADMIN with Post permission.')
+                  if 'not enough rights' in body.lower() or 'admin' in body.lower():
+                      print('HINT: Bot needs to be ADMIN in channel with Post messages permission.')
+              except: pass
+              # Fallback try without @
+              try:
+                  ch_data2 = urllib.parse.urlencode({'chat_id': 'liveapkpulse', 'text': msg}).encode()
+                  resp2 = urllib.request.urlopen(urllib.request.Request(tg_url, data=ch_data2, method='POST'), timeout=10)
+                  print('Fallback without @ succeeded:', resp2.read().decode()[:200])
+              except Exception as e2:
+                  print(f'Fallback also failed: {e2}')
           "

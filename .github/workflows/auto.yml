@@ -72,6 +72,7 @@ jobs:
         env:
           TG_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TG_CHAT: ${{ secrets.TELEGRAM_CHAT_ID }}
+          TG_CHANNEL: ${{ secrets.TELEGRAM_CHANNEL }}
         run: |
           python -c "
           import os, json, urllib.parse, urllib.request, subprocess
@@ -95,12 +96,20 @@ jobs:
               ts=raw_ts
           msg=(f'\u2705 Pulse Stream\n\U0001f4fa Live Channel: {valid}\n\U0001f552 {ts}')
           tg_url=f'https://api.telegram.org/bot{token}/sendMessage'
-          # Send to private chat
           data=urllib.parse.urlencode({'chat_id':chat_id,'text':msg}).encode()
-          urllib.request.urlopen(urllib.request.Request(tg_url,data=data,method='POST'),timeout=10)
-          print('Telegram sent to chat')
-          # Forward to channel @liveapkpulse
-          ch_data=urllib.parse.urlencode({'chat_id':'@liveapkpulse','text':msg}).encode()
-          urllib.request.urlopen(urllib.request.Request(tg_url,data=ch_data,method='POST'),timeout=10)
-          print('Telegram forwarded to @liveapkpulse')
+          try:
+              resp=urllib.request.urlopen(urllib.request.Request(tg_url,data=data,method='POST'),timeout=10)
+              print('Sent to chat:', resp.read().decode()[:200])
+          except Exception as e:
+              print(f'Chat error: {e}')
+          channel_id=os.environ.get('TG_CHANNEL','@liveapkpulse')
+          print(f'Forwarding to channel: {channel_id}')
+          try:
+              ch_data=urllib.parse.urlencode({'chat_id':channel_id,'text':msg}).encode()
+              resp=urllib.request.urlopen(urllib.request.Request(tg_url,data=ch_data,method='POST'),timeout=10)
+              print('Forwarded to channel:', resp.read().decode()[:300])
+          except Exception as e:
+              print(f'Channel error ({channel_id}): {e}')
+              try: print(e.read().decode() if hasattr(e,'read') else '')
+              except: pass
           "
