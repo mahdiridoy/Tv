@@ -95,7 +95,12 @@ jobs:
               ts=raw_ts
           msg=(f'\u2705 Pulse Stream\n\U0001f4fa Live Channel: {valid}\n\U0001f552 {ts}')
           tg_url=f'https://api.telegram.org/bot{token}/sendMessage'
+          # Send to private chat
           data=urllib.parse.urlencode({'chat_id':chat_id,'text':msg}).encode()
           urllib.request.urlopen(urllib.request.Request(tg_url,data=data,method='POST'),timeout=10)
-          print('Telegram sent for RIDOY IPTV')
+          print('Telegram sent to chat')
+          # Forward to channel @liveapkpulse
+          ch_data=urllib.parse.urlencode({'chat_id':'@liveapkpulse','text':msg}).encode()
+          urllib.request.urlopen(urllib.request.Request(tg_url,data=ch_data,method='POST'),timeout=10)
+          print('Telegram forwarded to @liveapkpulse')
           "

@@ -92,8 +92,14 @@ jobs:
           data = urllib.parse.urlencode({'chat_id': chat_id, 'text': msg}).encode()
           try:
               urllib.request.urlopen(urllib.request.Request(tg_url, data=data, method='POST'), timeout=10)
-              print('Telegram notification sent!')
+              print('Telegram notification sent to chat!')
           except Exception as e:
-              print(f'Telegram error: {e}')
-              sys.exit(1)
+              print(f'Telegram error (chat): {e}')
+          # Also forward to channel @liveapkpulse
+          try:
+              ch_data = urllib.parse.urlencode({'chat_id': '@liveapkpulse', 'text': msg}).encode()
+              urllib.request.urlopen(urllib.request.Request(tg_url, data=ch_data, method='POST'), timeout=10)
+              print('Telegram forwarded to @liveapkpulse!')
+          except Exception as e:
+              print(f'Telegram error (channel): {e}')
           "
