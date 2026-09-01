@@ -72,8 +72,15 @@ jobs:
               except Exception as e:
                   print(f'Error reading stats: {e}')
 
-          # Get scan time
-          timestamp = subprocess.run(['git', 'log', '-1', '--pretty=format:%ci'], capture_output=True, text=True).stdout.strip()
+          # Get scan time and convert to 12-hour format with +06:00
+          raw_ts = subprocess.run(['git', 'log', '-1', '--pretty=format:%ci'], capture_output=True, text=True).stdout.strip()
+          try:
+              from datetime import datetime
+              dt = datetime.strptime(raw_ts, '%Y-%m-%d %H:%M:%S %z')
+              ts_tmp = dt.strftime('%Y-%m-%d %I:%M:%S %p %z')
+              timestamp = ts_tmp[:-2] + ':' + ts_tmp[-2:]
+          except Exception:
+              timestamp = raw_ts
 
           msg = (
               f'\u2705 {filename}\n'

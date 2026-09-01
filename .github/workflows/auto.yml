@@ -85,7 +85,14 @@ jobs:
               with open(stats_file) as f: s=json.load(f)
               valid=s.get('alive','?')
           else: valid='?'
-          ts=subprocess.run(['git','log','-1','--pretty=format:%ci'],capture_output=True,text=True).stdout.strip()
+          raw_ts=subprocess.run(['git','log','-1','--pretty=format:%ci'],capture_output=True,text=True).stdout.strip()
+          try:
+              from datetime import datetime
+              dt=datetime.strptime(raw_ts, '%Y-%m-%d %H:%M:%S %z')
+              ts_tmp=dt.strftime('%Y-%m-%d %I:%M:%S %p %z')
+              ts=ts_tmp[:-2]+':'+ts_tmp[-2:]
+          except Exception:
+              ts=raw_ts
           msg=(f'\u2705 Pulse Stream\n\U0001f4fa Live Channel: {valid}\n\U0001f552 {ts}')
           tg_url=f'https://api.telegram.org/bot{token}/sendMessage'
           data=urllib.parse.urlencode({'chat_id':chat_id,'text':msg}).encode()
