@@ -63,7 +63,7 @@ jobs:
               sys.exit(0)
 
           # Read scan stats
-          total = valid = dead = latency = '?'
+          total = valid = dead = latency = median = '?'
           if os.path.exists(stats_file):
               try:
                   with open(stats_file) as f:
@@ -72,6 +72,7 @@ jobs:
                   valid = stats.get('alive', '?')
                   dead = stats.get('dead', '?')
                   latency = stats.get('avg_latency_ms', '?')
+                  median = stats.get('median_latency_ms', '?')
               except Exception as e:
                   print(f'Error reading stats: {e}')
 
@@ -84,7 +85,7 @@ jobs:
               f'\U0001f552 {timestamp}   ({commit})\n\n'
               f'\U0001f4fa Final channels: {valid}\n'
               f'\U0001f5d1\ufe0f Removed (dead/buffering): {dead}\n'
-              f'\u26a1 Avg latency: {latency} ms\n\n'
+              f'\u26a1 Avg latency: {latency} ms (median {median} ms)\n\n'
               f'\U0001f517 {url}\n'
               f'\U0001f4e6 Source: {source}'
           )

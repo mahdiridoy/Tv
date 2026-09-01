@@ -114,6 +114,16 @@ def _classify_and_check(r, overall_start: float):
     return "result", (True, latency, "ok")
 
 
+def _enforce_sock_timeout(r, timeout):
+    try:
+        sock = r.raw._connection.sock
+        if sock: sock.settimeout(timeout); return
+    except Exception: pass
+    try:
+        sock = r.raw._fp.fp.raw._sock
+        if sock: sock.settimeout(timeout)
+    except Exception: pass
+
 def check_stream(url: str) -> tuple[bool, float | None, str]:
     """
     Hard check — ONE shot, no retries. Any error = dead immediately.
@@ -129,6 +139,7 @@ def check_stream(url: str) -> tuple[bool, float | None, str]:
                 current_url, timeout=(CHECK_TIMEOUT, CHECK_TIMEOUT),
                 stream=True, allow_redirects=True,
             ) as r:
+                _enforce_sock_timeout(r, CHECK_TIMEOUT)
                 if r.status_code >= 400:
                     return False, None, f"dead:status-{r.status_code}"
 
