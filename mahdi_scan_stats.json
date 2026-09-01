@@ -1,17 +1,8 @@
 {
-  "alive": 181,
-  "dead": 14202,
-  "total": 14383,
-  "avg_latency_ms": 810,
-  "median_latency_ms": 684,
-  "p95_latency_ms": 1675,
-  "error_breakdown": {
-    "Timeout/Error": 1770,
-    "HTTP 403": 96,
-    "HTTP 404": 29,
-    "Slow >3000ms": 12289,
-    "HTTP 400": 15,
-    "HTTP 401": 2,
-    "HTTP 530": 1
-  }
+  "total": 7625,
+  "alive": 7625,
+  "dead": 0,
+  "avg_latency_ms": 0,
+  "median_latency_ms": 0,
+  "p95_latency_ms": 0
 }
