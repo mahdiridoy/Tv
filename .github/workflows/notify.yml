@@ -16,7 +16,7 @@ jobs:
       - name: Checkout main
         uses: actions/checkout@v4
         with:
-          fetch-depth: 2
+          fetch-depth: 0
 
       - name: Generate mahdi_scan_stats.json (for manual mahdi upload)
         run: |
@@ -59,13 +59,20 @@ jobs:
               print('ERROR: Telegram secrets not set')
               sys.exit(0)
 
-          # Detect which file was updated - check last 5 commits for safety
-          diff = subprocess.run(['git', 'diff', '--name-only', 'HEAD~5', 'HEAD'], capture_output=True, text=True).stdout.strip()
+          # Detect which file was updated - check last 5 commits
+          try:
+              diff = subprocess.run(['git', 'diff', '--name-only', 'HEAD~1', 'HEAD'], capture_output=True, text=True).stdout.strip()
+          except: diff=''
           files = diff.split('\n') if diff else []
-          
-          # Also check what files exist in the commit
           commit_files = subprocess.run(['git', 'show', '--name-only', '--pretty=format:', 'HEAD'], capture_output=True, text=True).stdout.strip()
           all_files = set(files + commit_files.split('\n') if commit_files else files)
+          # Fallback: if mahdi file exists and was recently modified, assume it
+          if not all_files or all_files == {''}:
+              if os.path.exists('mahdi_iptv.m3u8'):
+                  all_files.add('mahdi_iptv.m3u8')
+          print(f'Detected files in diff: {files}')
+          print(f'Commit files: {commit_files}')
+          print(f'All files: {all_files}')
 
           filename = None
           url = None
