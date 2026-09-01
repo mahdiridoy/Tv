@@ -86,7 +86,7 @@ jobs:
               valid=s.get('alive','?')
           else: valid='?'
           ts=subprocess.run(['git','log','-1','--pretty=format:%ci'],capture_output=True,text=True).stdout.strip()
-          msg=(f'\u2705 RIDOY IPTV\n\U0001f4fa Live Channel: {valid}\n\U0001f552 {ts}\n\U0001f517 https://mahdiridoy.github.io/Tv/ridoyiptv.m3u')
+          msg=(f'\u2705 Pulse Stream\n\U0001f4fa Live Channel: {valid}\n\U0001f552 {ts}')
           tg_url=f'https://api.telegram.org/bot{token}/sendMessage'
           data=urllib.parse.urlencode({'chat_id':chat_id,'text':msg}).encode()
           urllib.request.urlopen(urllib.request.Request(tg_url,data=data,method='POST'),timeout=10)

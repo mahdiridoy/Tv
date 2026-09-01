@@ -47,12 +47,12 @@ jobs:
           stats_file = None
 
           if 'mahdi_iptv.m3u8' in all_files:
-              filename = 'MAHDI IPTV-Pulse Stream'
+              filename = 'Pulse Stream'
               url = 'https://mahdiridoy.github.io/Tv/mahdi_iptv.m3u8'
               source = 'LOCAL CHECK'
               stats_file = 'mahdi_scan_stats.json'
           elif 'ridoyiptv.m3u' in all_files:
-              filename = 'RIDOY IPTV'
+              filename = 'Pulse Stream'
               url = 'https://mahdiridoy.github.io/Tv/ridoyiptv.m3u'
               source = 'ONLINE CHECK'
               stats_file = 'ridoy_scan_stats.json'
@@ -78,8 +78,7 @@ jobs:
           msg = (
               f'\u2705 {filename}\n'
               f'\U0001f4fa Live Channel: {valid}\n'
-              f'\U0001f552 {timestamp}\n'
-              f'\U0001f517 {url}'
+              f'\U0001f552 {timestamp}'
           )
 
           tg_url = f'https://api.telegram.org/bot{token}/sendMessage'
