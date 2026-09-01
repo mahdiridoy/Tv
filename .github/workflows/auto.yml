@@ -83,11 +83,10 @@ jobs:
           stats_file='ridoy_scan_stats.json'
           if os.path.exists(stats_file):
               with open(stats_file) as f: s=json.load(f)
-              valid=s.get('alive','?'); dead=s.get('dead','?'); latency=s.get('avg_latency_ms','?'); median=s.get('median_latency_ms','?')
-          else: valid=dead=latency=median='?'
-          commit=subprocess.run(['git','log','-1','--pretty=format:%h'],capture_output=True,text=True).stdout.strip()
+              valid=s.get('alive','?')
+          else: valid='?'
           ts=subprocess.run(['git','log','-1','--pretty=format:%ci'],capture_output=True,text=True).stdout.strip()
-          msg=(f'\u2705 IPTV playlist updated - RIDOY IPTV\n\U0001f552 {ts}   ({commit})\n\n\U0001f4fa Final channels: {valid}\n\U0001f5d1\ufe0f Removed (dead/buffering): {dead}\n\u26a1 Avg latency: {latency} ms (median {median} ms)\n\n\U0001f517 https://mahdiridoy.github.io/Tv/ridoyiptv.m3u\n\U0001f4e6 Source: ONLINE CHECK')
+          msg=(f'\u2705 RIDOY IPTV\n\U0001f4fa Live Channel: {valid}\n\U0001f552 {ts}\n\U0001f517 https://mahdiridoy.github.io/Tv/ridoyiptv.m3u')
           tg_url=f'https://api.telegram.org/bot{token}/sendMessage'
           data=urllib.parse.urlencode({'chat_id':chat_id,'text':msg}).encode()
           urllib.request.urlopen(urllib.request.Request(tg_url,data=data,method='POST'),timeout=10)

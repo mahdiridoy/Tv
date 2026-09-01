@@ -47,7 +47,7 @@ jobs:
           stats_file = None
 
           if 'mahdi_iptv.m3u8' in all_files:
-              filename = 'MAHDI IPTV'
+              filename = 'MAHDI IPTV-Pulse Stream'
               url = 'https://mahdiridoy.github.io/Tv/mahdi_iptv.m3u8'
               source = 'LOCAL CHECK'
               stats_file = 'mahdi_scan_stats.json'
@@ -62,32 +62,24 @@ jobs:
               print(f'Files in commit: {commit_files}')
               sys.exit(0)
 
-          # Read scan stats
-          total = valid = dead = latency = median = '?'
+          # Read scan stats - only total Live Channel
+          valid = '?'
           if os.path.exists(stats_file):
               try:
                   with open(stats_file) as f:
                       stats = json.load(f)
-                  total = stats.get('total', '?')
                   valid = stats.get('alive', '?')
-                  dead = stats.get('dead', '?')
-                  latency = stats.get('avg_latency_ms', '?')
-                  median = stats.get('median_latency_ms', '?')
               except Exception as e:
                   print(f'Error reading stats: {e}')
 
-          # Get commit hash and timestamp
-          commit = subprocess.run(['git', 'log', '-1', '--pretty=format:%h'], capture_output=True, text=True).stdout.strip()
+          # Get scan time
           timestamp = subprocess.run(['git', 'log', '-1', '--pretty=format:%ci'], capture_output=True, text=True).stdout.strip()
 
           msg = (
-              f'\u2705 IPTV playlist updated - {filename}\n'
-              f'\U0001f552 {timestamp}   ({commit})\n\n'
-              f'\U0001f4fa Final channels: {valid}\n'
-              f'\U0001f5d1\ufe0f Removed (dead/buffering): {dead}\n'
-              f'\u26a1 Avg latency: {latency} ms (median {median} ms)\n\n'
-              f'\U0001f517 {url}\n'
-              f'\U0001f4e6 Source: {source}'
+              f'\u2705 {filename}\n'
+              f'\U0001f4fa Live Channel: {valid}\n'
+              f'\U0001f552 {timestamp}\n'
+              f'\U0001f517 {url}'
           )
 
           tg_url = f'https://api.telegram.org/bot{token}/sendMessage'
