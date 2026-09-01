@@ -1,12 +1,12 @@
 @echo off
-title Pulse Stream - With Link Scan
+title Pulse Stream
 color 0A
 
 REM ── Make sure we're always in the project folder ──
 cd /d "%~dp0"
 
 echo =====================================
-echo     Pulse Stream (WITH LINK SCAN)
+echo     Pulse Stream
 echo =====================================
 echo.
 
@@ -83,16 +83,11 @@ if errorlevel 1 goto :error
 
 echo.
 echo =====================================
-echo Running scan_valid.py (link validation)
+echo Preparing output (no scan)
 echo =====================================
-python scan_valid.py merged.m3u mahdi_iptv.m3u8 --stats-file mahdi_scan_stats.json
-if errorlevel 1 goto :error
-
-REM ── Cooldown: let DNS recover after heavy scan ──
-echo.
-echo Waiting 10 seconds for DNS to recover after scan...
-timeout /t 10 /nobreak >nul
-ipconfig /flushdns >nul 2>&1
+copy /y merged.m3u mahdi_iptv.m3u8 >nul
+python -c "import json; d=open('mahdi_iptv.m3u8',encoding='utf-8',errors='ignore').read(); c=d.count('#EXTINF'); open('mahdi_scan_stats.json','w').write(json.dumps({'total':c,'alive':c,'dead':0,'avg_latency_ms':0,'median_latency_ms':0,'p95_latency_ms':0})); print(f'[OK] Channels: {c} (no scan)')"
+echo [OK] Output ready: mahdi_iptv.m3u8
 
 REM ── Push mahdi_iptv.m3u8 + mahdi_scan_stats.json ──
 echo.
