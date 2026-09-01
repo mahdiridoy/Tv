@@ -47,16 +47,15 @@ jobs:
         run: python scan_valid.py merged.m3u merged.m3u --stats-file ridoy_scan_stats.json
 
       - name: Prepare output file
-        run: cp merged.m3u ridoyiptv.m3u
+        run: |
+          cp merged.m3u ridoyiptv.m3u
+          # Add timestamp to force change every run
+          sed -i "1i# Generated: $(date -u)" ridoyiptv.m3u
 
       - name: Push to main branch
         run: |
           git config user.email "bot@iptv.local"
           git config user.name "IPTV Bot"
           git add ridoyiptv.m3u ridoy_scan_stats.json
-          if ! git diff --cached --quiet; then
-            git commit -m "Auto update: ridoyiptv.m3u"
-            git push origin main
-          else
-            echo "No changes to push."
-          fi
+          git commit -m "Auto update: ridoyiptv.m3u [$(date -u)]"
+          git push origin main
