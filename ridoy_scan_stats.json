@@ -1,22 +1,22 @@
 {
-  "alive": 405,
-  "dead": 14078,
-  "total": 14483,
-  "avg_latency_ms": 1625,
-  "median_latency_ms": 1751,
-  "p95_latency_ms": 2641,
+  "alive": 383,
+  "dead": 14092,
+  "total": 14475,
+  "avg_latency_ms": 1548,
+  "median_latency_ms": 1723,
+  "p95_latency_ms": 2505,
   "error_breakdown": {
-    "Timeout/Error": 1537,
-    "HTTP 404": 78,
-    "HTTP 403": 141,
-    "HTTP 500": 4,
+    "HTTP 403": 89,
+    "HTTP 404": 68,
+    "HTTP 401": 11,
+    "Timeout/Error": 1564,
+    "Slow >3000ms": 12351,
     "HTTP 530": 1,
-    "HTTP 401": 15,
-    "Slow >3000ms": 12295,
-    "HTTP 504": 2,
-    "HTTP 502": 2,
+    "HTTP 500": 1,
+    "HTTP 504": 1,
+    "HTTP 458": 1,
+    "HTTP 502": 3,
     "HTTP 200": 1,
-    "HTTP 400": 1,
-    "HTTP 429": 1
+    "HTTP 400": 1
   }
 }
