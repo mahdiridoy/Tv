@@ -41,12 +41,12 @@ jobs:
           if git diff --name-only HEAD~1 HEAD | grep -q "mahdi_iptv.m3u8" || git show --name-only --pretty=format: HEAD | grep -q "mahdi_iptv.m3u8"; then
             echo "mahdi_iptv.m3u8 changed - counting channels..."
             COUNT=$(grep -c "^#EXTINF" mahdi_iptv.m3u8 || echo 0)
-            echo "Live channels: $COUNT"
+            echo "Total channels: $COUNT"
             python -c "
           import json
           c=int(open('mahdi_iptv.m3u8',encoding='utf-8',errors='ignore').read().count('#EXTINF'))
-          open('mahdi_scan_stats.json','w').write(json.dumps({'total':c,'alive':c,'dead':0,'avg_latency_ms':0,'median_latency_ms':0,'p95_latency_ms':0}, indent=2))
-          print(f'Generated mahdi_scan_stats.json with {c} channels')
+          open('mahdi_scan_stats.json','w').write(json.dumps({'total':c}, indent=2))
+          print(f'Generated mahdi_scan_stats.json with {c} total channels')
           "
             git config user.email "bot@iptv.local"
             git config user.name "IPTV Bot"
@@ -115,13 +115,13 @@ jobs:
               print(f'Files in triggering commit: {commit_files}')
               sys.exit(0)
 
-          # Read scan stats - only total Live Channel
+          # Read scan stats
           valid = '?'
-          if os.path.exists(stats_file):
+          if stats_file and os.path.exists(stats_file):
               try:
                   with open(stats_file) as f:
                       stats = json.load(f)
-                  valid = stats.get('alive', '?')
+                  valid = stats.get('total', stats.get('alive', '?'))
               except Exception as e:
                   print(f'Error reading stats: {e}')
 
