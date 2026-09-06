@@ -62,3 +62,52 @@ jobs:
           git add ridoyiptv.m3u ridoy_scan_stats.json
           git commit -m "Auto update: ridoyiptv.m3u [$(date -u)]"
           git push origin main
+
+      - name: Send Telegram notification
+        if: success()
+        env:
+          TG_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TG_CHAT: ${{ secrets.TELEGRAM_CHAT_ID }}
+          TG_CHANNEL: ${{ secrets.TELEGRAM_CHANNEL }}
+        run: |
+          python -c "
+          import os, json, urllib.parse, urllib.request, subprocess
+
+          token = os.environ.get('TG_TOKEN','')
+          chat_id = os.environ.get('TG_CHAT','')
+          if not token or not chat_id:
+              print('Telegram secrets missing, skip')
+              exit(0)
+
+          count = sum(1 for line in open('ridoyiptv.m3u') if line.strip().startswith('#EXTINF'))
+
+          raw_ts = subprocess.run(['git','log','-1','--pretty=format:%ci'],capture_output=True,text=True).stdout.strip()
+          try:
+              from datetime import datetime
+              from zoneinfo import ZoneInfo
+              dt = datetime.strptime(raw_ts, '%Y-%m-%d %H:%M:%S %z')
+              dt_bd = dt.astimezone(ZoneInfo('Asia/Dhaka'))
+              ts = dt_bd.strftime('%Y-%m-%d %I:%M:%S %p +06:00')
+          except:
+              ts = raw_ts
+
+          msg = f'\u2705 Pulse Stream Server 2\n\U0001f4fa Live Channel: {count}\n\U0001f552 {ts}'
+          print(f'Message: {msg}')
+
+          tg_url = f'https://api.telegram.org/bot{token}/sendMessage'
+
+          try:
+              data = urllib.parse.urlencode({'chat_id': chat_id, 'text': msg}).encode()
+              urllib.request.urlopen(urllib.request.Request(tg_url, data=data, method='POST'), timeout=10)
+              print('Sent to chat OK')
+          except Exception as e:
+              print(f'Chat error: {e}')
+
+          channel_id = os.environ.get('TG_CHANNEL', '@liveapkpulse')
+          try:
+              data = urllib.parse.urlencode({'chat_id': channel_id, 'text': msg}).encode()
+              urllib.request.urlopen(urllib.request.Request(tg_url, data=data, method='POST'), timeout=10)
+              print('Sent to channel OK')
+          except Exception as e:
+              print(f'Channel error: {e}')
+          "
