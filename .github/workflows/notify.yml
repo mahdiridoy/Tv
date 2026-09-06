@@ -1,5 +1,8 @@
 name: Telegram Notify on Push
 
+permissions:
+  contents: write
+
 on:
   push:
     branches: [main]
@@ -13,6 +16,21 @@ jobs:
     timeout-minutes: 5
 
     steps:
+      - name: Verify Telegram secrets
+        env:
+          TG_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TG_CHAT: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          if [ -z "$TG_TOKEN" ] || [ -z "$TG_CHAT" ]; then
+            echo "ERROR: Telegram secrets not configured!"
+            echo "Please add these secrets in your repository settings:"
+            echo "  - TELEGRAM_BOT_TOKEN: Your Telegram bot token"
+            echo "  - TELEGRAM_CHAT_ID: Your Telegram chat ID"
+            echo "  - TELEGRAM_CHANNEL (optional): Your Telegram channel username"
+            exit 1
+          fi
+          echo "Telegram secrets verified"
+
       - name: Checkout main
         uses: actions/checkout@v4
         with:
@@ -48,31 +66,34 @@ jobs:
           TG_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TG_CHAT: ${{ secrets.TELEGRAM_CHAT_ID }}
           TG_CHANNEL: ${{ secrets.TELEGRAM_CHANNEL }}
+          TRIGGER_SHA: ${{ github.sha }}
         run: |
           python -c "
           import os, json, urllib.parse, urllib.request, subprocess, sys
 
           token = os.environ.get('TG_TOKEN', '')
           chat_id = os.environ.get('TG_CHAT', '')
+          trigger_sha = os.environ.get('TRIGGER_SHA', '')
 
           if not token or not chat_id:
-              print('ERROR: Telegram secrets not set')
-              sys.exit(0)
+              print('ERROR: Telegram secrets not set!')
+              print('Please add TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID to repository secrets.')
+              sys.exit(1)
 
-          # Detect which file was updated - check last 5 commits
-          try:
-              diff = subprocess.run(['git', 'diff', '--name-only', 'HEAD~1', 'HEAD'], capture_output=True, text=True).stdout.strip()
-          except: diff=''
-          files = diff.split('\n') if diff else []
-          commit_files = subprocess.run(['git', 'show', '--name-only', '--pretty=format:', 'HEAD'], capture_output=True, text=True).stdout.strip()
-          all_files = set(files + commit_files.split('\n') if commit_files else files)
-          # Fallback: if mahdi file exists and was recently modified, assume it
+          # Use the original triggering commit SHA, not HEAD
+          # HEAD may have changed due to stats commit
+          sha_to_check = trigger_sha if trigger_sha else 'HEAD'
+          print(f'Checking triggering commit: {sha_to_check}')
+
+          commit_files = subprocess.run(['git', 'show', '--name-only', '--pretty=format:', sha_to_check], capture_output=True, text=True).stdout.strip()
+          all_files = set(commit_files.split('\n') if commit_files else [])
+          print(f'Files in triggering commit: {all_files}')
+
+          # Fallback: if no files detected, check if mahdi_iptv.m3u8 exists
           if not all_files or all_files == {''}:
               if os.path.exists('mahdi_iptv.m3u8'):
                   all_files.add('mahdi_iptv.m3u8')
-          print(f'Detected files in diff: {files}')
-          print(f'Commit files: {commit_files}')
-          print(f'All files: {all_files}')
+                  print('Fallback: mahdi_iptv.m3u8 exists, assuming it was updated')
 
           filename = None
           url = None
@@ -91,8 +112,7 @@ jobs:
               stats_file = 'ridoy_scan_stats.json'
           else:
               print('No playlist file changed, skipping')
-              print(f'Files in diff: {files}')
-              print(f'Files in commit: {commit_files}')
+              print(f'Files in triggering commit: {commit_files}')
               sys.exit(0)
 
           # Read scan stats - only total Live Channel
