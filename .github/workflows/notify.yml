@@ -23,30 +23,29 @@ jobs:
         run: |
           if [ -z "$TG_TOKEN" ] || [ -z "$TG_CHAT" ]; then
             echo "ERROR: Telegram secrets not configured!"
-            echo "Please add these secrets in your repository settings:"
-            echo "  - TELEGRAM_BOT_TOKEN: Your Telegram bot token"
-            echo "  - TELEGRAM_CHAT_ID: Your Telegram chat ID"
-            echo "  - TELEGRAM_CHANNEL (optional): Your Telegram channel username"
             exit 1
           fi
           echo "Telegram secrets verified"
 
       - name: Checkout main
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
-      - name: Count valid channels in mahdi_iptv.m3u8
+      - name: Dedup & count mahdi_iptv.m3u8
         run: |
-          if git show --name-only --pretty=format: ${{ github.sha }} | grep -q "mahdi_iptv.m3u8"; then
-            echo "mahdi_iptv.m3u8 changed - counting & deduplicating..."
-            python -c "
-          import json
+          python -c "
+          import json, os, subprocess
 
-          with open('mahdi_iptv.m3u8', encoding='utf-8', errors='ignore') as f:
+          FILE = 'mahdi_iptv.m3u8'
+          STATS = 'mahdi_scan_stats.json'
+
+          if not os.path.exists(FILE):
+              print(f'{FILE} not found, skip')
+              exit(0)
+
+          with open(FILE, encoding='utf-8', errors='ignore') as f:
               lines = f.readlines()
 
-          # Parse entries: list of (extinf_line, url)
+          # Parse: (extinf_line, url)
           entries = []
           i = 0
           while i < len(lines):
@@ -64,43 +63,56 @@ jobs:
 
           total = len(entries)
 
-          # Remove duplicates by name AND URL (keep first)
+          # Dedup by name (case-insensitive) AND URL
           seen_names = set()
           seen_urls = set()
           unique = []
+          removed_urls = []
+          removed_names = []
           for extinf, url in entries:
-              # Extract channel name from #EXTINF line, lowercase for comparison
               name = extinf.split(',')[-1].strip().lower() if ',' in extinf else ''
-              if url not in seen_urls and name not in seen_names:
+              is_dup = url in seen_urls or (name and name in seen_names)
+              if not is_dup:
                   seen_urls.add(url)
-                  seen_names.add(name)
+                  if name:
+                      seen_names.add(name)
                   unique.append((extinf, url))
+              else:
+                  if url in seen_urls:
+                      removed_urls.append(url)
+                  if name and name in seen_names:
+                      removed_names.append(name)
 
           duplicates = total - len(unique)
+          print(f'Before: {total}, Duplicates: {duplicates}, After: {len(unique)}')
+          if removed_names:
+              print(f'Removed names: {list(set(removed_names))[:10]}')
 
-          print(f'Total: {total}, Duplicates removed: {duplicates}, Final: {len(unique)}')
-
-          # Write deduplicated file
-          with open('mahdi_iptv.m3u8', 'w', encoding='utf-8') as f:
+          # Write deduped file
+          with open(FILE, 'w', encoding='utf-8') as f:
               f.write('#EXTM3U\n')
               for extinf, url in unique:
                   f.write(f'{extinf}\n{url}\n')
 
-          open('mahdi_scan_stats.json', 'w').write(json.dumps({'total': len(unique), 'alive': len(unique), 'dead': 0, 'duplicates_removed': duplicates}, indent=2))
+          # Write stats
+          stats = {'total': len(unique), 'alive': len(unique), 'duplicates_removed': duplicates}
+          with open(STATS, 'w') as f:
+              json.dump(stats, f, indent=2)
+          print(f'Stats: {stats}')
           "
-            ALIVE=$(python -c "import json; print(json.load(open('mahdi_scan_stats.json'))['alive'])")
+
+      - name: Commit dedup changes
+        run: |
+          git config user.email "bot@iptv.local"
+          git config user.name "IPTV Bot"
+          git add mahdi_iptv.m3u8 mahdi_scan_stats.json
+          if ! git diff --cached --quiet; then
             REMOVED=$(python -c "import json; print(json.load(open('mahdi_scan_stats.json'))['duplicates_removed'])")
-            git config user.email "bot@iptv.local"
-            git config user.name "IPTV Bot"
-            git add mahdi_iptv.m3u8 mahdi_scan_stats.json
-            if ! git diff --cached --quiet; then
-              git commit -m "Auto dedup: $REMOVED duplicates removed, $ALIVE alive channels"
-              git push origin main || echo "Push failed, will still notify"
-            else
-              echo "No changes"
-            fi
+            ALIVE=$(python -c "import json; print(json.load(open('mahdi_scan_stats.json'))['alive'])")
+            git commit -m "Auto dedup: $REMOVED duplicates removed, $ALIVE channels"
+            git push origin main || echo "Push failed, will still notify"
           else
-            echo "Not a mahdi upload, skip"
+            echo "No duplicates found"
           fi
 
       - name: Send Telegram notification
@@ -108,118 +120,69 @@ jobs:
           TG_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TG_CHAT: ${{ secrets.TELEGRAM_CHAT_ID }}
           TG_CHANNEL: ${{ secrets.TELEGRAM_CHANNEL }}
-          TRIGGER_SHA: ${{ github.sha }}
         run: |
           python -c "
-          import os, json, urllib.parse, urllib.request, subprocess, sys
+          import os, json, urllib.parse, urllib.request
 
           token = os.environ.get('TG_TOKEN', '')
           chat_id = os.environ.get('TG_CHAT', '')
-          trigger_sha = os.environ.get('TRIGGER_SHA', '')
+          channel_id = os.environ.get('TG_CHANNEL', '@liveapkpulse')
 
           if not token or not chat_id:
               print('ERROR: Telegram secrets not set!')
-              print('Please add TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID to repository secrets.')
-              sys.exit(1)
+              exit(1)
 
-          # Use the original triggering commit SHA, not HEAD
-          # HEAD may have changed due to stats commit
-          sha_to_check = trigger_sha if trigger_sha else 'HEAD'
-          print(f'Checking triggering commit: {sha_to_check}')
+          # Detect which file changed
+          import subprocess
+          diff = subprocess.run(['git', 'diff', '--name-only', 'HEAD~1', 'HEAD'], capture_output=True, text=True).stdout.strip()
+          files = diff.split('\n') if diff else []
 
-          commit_files = subprocess.run(['git', 'show', '--name-only', '--pretty=format:', sha_to_check], capture_output=True, text=True).stdout.strip()
-          all_files = set(commit_files.split('\n') if commit_files else [])
-          print(f'Files in triggering commit: {all_files}')
-
-          # Fallback: if no files detected, check if mahdi_iptv.m3u8 exists
-          if not all_files or all_files == {''}:
-              if os.path.exists('mahdi_iptv.m3u8'):
-                  all_files.add('mahdi_iptv.m3u8')
-                  print('Fallback: mahdi_iptv.m3u8 exists, assuming it was updated')
-
-          filename = None
-          url = None
-          source = None
-          stats_file = None
-
-          if 'mahdi_iptv.m3u8' in all_files:
-              filename = 'Pulse Stream Server 1'
-              url = 'https://mahdiridoy.github.io/Tv/mahdi_iptv.m3u8'
-              source = 'LOCAL CHECK'
+          if 'mahdi_iptv.m3u8' in files:
+              name = 'Pulse Stream Server 1'
               stats_file = 'mahdi_scan_stats.json'
-          elif 'ridoyiptv.m3u' in all_files:
-              filename = 'Pulse Stream Server 2'
-              url = 'https://mahdiridoy.github.io/Tv/ridoyiptv.m3u'
-              source = 'ONLINE CHECK'
+          elif 'ridoyiptv.m3u' in files:
+              name = 'Pulse Stream Server 2'
               stats_file = 'ridoy_scan_stats.json'
           else:
-              print('No playlist file changed, skipping')
-              print(f'Files in triggering commit: {commit_files}')
-              sys.exit(0)
+              print('No playlist changed, skip')
+              exit(0)
 
-          # Read scan stats
-          valid = '?'
-          if stats_file and os.path.exists(stats_file):
-              try:
-                  with open(stats_file) as f:
-                      stats = json.load(f)
-                  valid = stats.get('alive', stats.get('total', '?'))
-              except Exception as e:
-                  print(f'Error reading stats: {e}')
+          # Read count
+          count = '?'
+          if os.path.exists(stats_file):
+              with open(stats_file) as f:
+                  s = json.load(f)
+              count = s.get('alive', s.get('total', '?'))
 
-          # Get scan time and convert to Bangladesh time Asia/Dhaka 12-hour with +06:00
+          # Get timestamp in BD time
           raw_ts = subprocess.run(['git', 'log', '-1', '--pretty=format:%ci'], capture_output=True, text=True).stdout.strip()
           try:
               from datetime import datetime
               from zoneinfo import ZoneInfo
               dt = datetime.strptime(raw_ts, '%Y-%m-%d %H:%M:%S %z')
               dt_bd = dt.astimezone(ZoneInfo('Asia/Dhaka'))
-              ts_tmp = dt_bd.strftime('%Y-%m-%d %I:%M:%S %p %z')
-              timestamp = ts_tmp[:-2] + ':' + ts_tmp[-2:]
-          except Exception as e:
-              print(f'Time convert error: {e}')
-              timestamp = raw_ts
+              ts = dt_bd.strftime('%Y-%m-%d %I:%M:%S %p +06:00')
+          except:
+              ts = raw_ts
 
-          msg = (
-              f'\u2705 {filename}\n'
-              f'\U0001f4fa Live Channel: {valid}\n'
-              f'\U0001f552 {timestamp}'
-          )
+          msg = f'\u2705 {name}\n\U0001f4fa Live Channel: {count}\n\U0001f552 {ts}'
+          print(f'Message: {msg}')
 
           tg_url = f'https://api.telegram.org/bot{token}/sendMessage'
-          data = urllib.parse.urlencode({'chat_id': chat_id, 'text': msg}).encode()
+
+          # Send to chat
           try:
+              data = urllib.parse.urlencode({'chat_id': chat_id, 'text': msg}).encode()
               resp = urllib.request.urlopen(urllib.request.Request(tg_url, data=data, method='POST'), timeout=10)
-              print('Telegram notification sent to chat! Response:', resp.read().decode()[:200])
+              print('Sent to chat OK')
           except Exception as e:
-              print(f'Telegram error (chat): {e}')
-              try:
-                  import urllib.error
-                  print(e.read().decode() if hasattr(e, 'read') else '')
-              except: pass
-          # Also forward to channel @liveapkpulse
-          channel_id = os.environ.get('TG_CHANNEL', '@liveapkpulse')
-          print(f'Forwarding to channel: {channel_id}')
+              print(f'Chat error: {e}')
+
+          # Forward to channel
           try:
-              ch_data = urllib.parse.urlencode({'chat_id': channel_id, 'text': msg}).encode()
-              resp = urllib.request.urlopen(urllib.request.Request(tg_url, data=ch_data, method='POST'), timeout=10)
-              print('Telegram forwarded to channel! Response:', resp.read().decode()[:300])
+              data = urllib.parse.urlencode({'chat_id': channel_id, 'text': msg}).encode()
+              resp = urllib.request.urlopen(urllib.request.Request(tg_url, data=data, method='POST'), timeout=10)
+              print('Sent to channel OK')
           except Exception as e:
-              print(f'Telegram error (channel {channel_id}): {e}')
-              try:
-                  body = e.read().decode() if hasattr(e, 'read') else ''
-                  print('Channel error body:', body)
-                  # Common errors:
-                  if 'chat not found' in body.lower():
-                      print('HINT: Channel @liveapkpulse not found or bot not admin. Make bot ADMIN with Post permission.')
-                  if 'not enough rights' in body.lower() or 'admin' in body.lower():
-                      print('HINT: Bot needs to be ADMIN in channel with Post messages permission.')
-              except: pass
-              # Fallback try without @
-              try:
-                  ch_data2 = urllib.parse.urlencode({'chat_id': 'liveapkpulse', 'text': msg}).encode()
-                  resp2 = urllib.request.urlopen(urllib.request.Request(tg_url, data=ch_data2, method='POST'), timeout=10)
-                  print('Fallback without @ succeeded:', resp2.read().decode()[:200])
-              except Exception as e2:
-                  print(f'Fallback also failed: {e2}')
+              print(f'Channel error: {e}')
           "
