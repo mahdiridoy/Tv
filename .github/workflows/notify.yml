@@ -69,8 +69,8 @@ jobs:
           seen_urls = set()
           unique = []
           for extinf, url in entries:
-              # Extract channel name from #EXTINF line
-              name = extinf.split(',')[-1].strip() if ',' in extinf else ''
+              # Extract channel name from #EXTINF line, lowercase for comparison
+              name = extinf.split(',')[-1].strip().lower() if ',' in extinf else ''
               if url not in seen_urls and name not in seen_names:
                   seen_urls.add(url)
                   seen_names.add(name)
