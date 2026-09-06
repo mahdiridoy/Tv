@@ -13,10 +13,6 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 200
 
-    env:
-      TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-      TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -66,53 +62,3 @@ jobs:
           git add ridoyiptv.m3u ridoy_scan_stats.json
           git commit -m "Auto update: ridoyiptv.m3u [$(date -u)]"
           git push origin main
-
-      - name: Send Telegram notification (direct - works even without GH_PAT)
-        if: success()
-        env:
-          TG_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          TG_CHAT: ${{ secrets.TELEGRAM_CHAT_ID }}
-          TG_CHANNEL: ${{ secrets.TELEGRAM_CHANNEL }}
-        run: |
-          python -c "
-          import os, json, urllib.parse, urllib.request, subprocess
-          token = os.environ.get('TG_TOKEN','')
-          chat_id = os.environ.get('TG_CHAT','')
-          if not token or not chat_id:
-              print('Telegram secrets missing, skip')
-              exit(0)
-          stats_file='ridoy_scan_stats.json'
-          if os.path.exists(stats_file):
-              with open(stats_file) as f: s=json.load(f)
-              valid=s.get('alive','?')
-          else: valid='?'
-          raw_ts=subprocess.run(['git','log','-1','--pretty=format:%ci'],capture_output=True,text=True).stdout.strip()
-          try:
-              from datetime import datetime
-              from zoneinfo import ZoneInfo
-              dt=datetime.strptime(raw_ts, '%Y-%m-%d %H:%M:%S %z')
-              dt_bd=dt.astimezone(ZoneInfo('Asia/Dhaka'))
-              ts_tmp=dt_bd.strftime('%Y-%m-%d %I:%M:%S %p %z')
-              ts=ts_tmp[:-2]+':'+ts_tmp[-2:]
-          except Exception as e:
-              print(f'Time convert error: {e}')
-              ts=raw_ts
-          msg=(f'\u2705 Ridoy IPTV\n\U0001f4fa Live Channel: {valid}\n\U0001f552 {ts}')
-          tg_url=f'https://api.telegram.org/bot{token}/sendMessage'
-          data=urllib.parse.urlencode({'chat_id':chat_id,'text':msg}).encode()
-          try:
-              resp=urllib.request.urlopen(urllib.request.Request(tg_url,data=data,method='POST'),timeout=10)
-              print('Sent to chat:', resp.read().decode()[:200])
-          except Exception as e:
-              print(f'Chat error: {e}')
-          channel_id=os.environ.get('TG_CHANNEL','@liveapkpulse')
-          print(f'Forwarding to channel: {channel_id}')
-          try:
-              ch_data=urllib.parse.urlencode({'chat_id':channel_id,'text':msg}).encode()
-              resp=urllib.request.urlopen(urllib.request.Request(tg_url,data=ch_data,method='POST'),timeout=10)
-              print('Forwarded to channel:', resp.read().decode()[:300])
-          except Exception as e:
-              print(f'Channel error ({channel_id}): {e}')
-              try: print(e.read().decode() if hasattr(e,'read') else '')
-              except: pass
-          "
