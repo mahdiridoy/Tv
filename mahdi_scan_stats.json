@@ -1,8 +1,6 @@
 {
-  "total": 6800,
-  "alive": 6800,
+  "total": 6076,
+  "alive": 6076,
   "dead": 0,
-  "avg_latency_ms": 0,
-  "median_latency_ms": 0,
-  "p95_latency_ms": 0
+  "duplicates_removed": 735
 }
