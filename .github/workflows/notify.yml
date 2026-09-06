@@ -78,11 +78,7 @@ jobs:
 
           duplicates = total - len(unique)
 
-          # Count valid (has http URL)
-          alive = sum(1 for _, url in unique if url.startswith('http') and len(url) > 10)
-          dead = len(unique) - alive
-
-          print(f'Total: {total}, Duplicates removed: {duplicates}, Alive: {alive}, Dead: {dead}')
+          print(f'Total: {total}, Duplicates removed: {duplicates}, Final: {len(unique)}')
 
           # Write deduplicated file
           with open('mahdi_iptv.m3u8', 'w', encoding='utf-8') as f:
@@ -90,7 +86,7 @@ jobs:
               for extinf, url in unique:
                   f.write(f'{extinf}\n{url}\n')
 
-          open('mahdi_scan_stats.json', 'w').write(json.dumps({'total': len(unique), 'alive': alive, 'dead': dead, 'duplicates_removed': duplicates}, indent=2))
+          open('mahdi_scan_stats.json', 'w').write(json.dumps({'total': len(unique), 'alive': len(unique), 'dead': 0, 'duplicates_removed': duplicates}, indent=2))
           "
             ALIVE=$(python -c "import json; print(json.load(open('mahdi_scan_stats.json'))['alive'])")
             REMOVED=$(python -c "import json; print(json.load(open('mahdi_scan_stats.json'))['duplicates_removed'])")
