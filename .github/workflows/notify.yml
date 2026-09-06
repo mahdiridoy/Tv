@@ -122,7 +122,7 @@ jobs:
           TG_CHANNEL: ${{ secrets.TELEGRAM_CHANNEL }}
         run: |
           python -c "
-          import os, json, urllib.parse, urllib.request
+          import os, json, urllib.parse, urllib.request, subprocess
 
           token = os.environ.get('TG_TOKEN', '')
           chat_id = os.environ.get('TG_CHAT', '')
@@ -133,26 +133,25 @@ jobs:
               exit(1)
 
           # Detect which file changed
-          import subprocess
           diff = subprocess.run(['git', 'diff', '--name-only', 'HEAD~1', 'HEAD'], capture_output=True, text=True).stdout.strip()
           files = diff.split('\n') if diff else []
+          print(f'Changed files: {files}')
+
+          def count_channels(filepath):
+              if not os.path.exists(filepath):
+                  return '?'
+              with open(filepath, encoding='utf-8', errors='ignore') as f:
+                  return sum(1 for line in f if line.strip().startswith('#EXTINF'))
 
           if 'mahdi_iptv.m3u8' in files:
               name = 'Pulse Stream Server 1'
-              stats_file = 'mahdi_scan_stats.json'
+              count = count_channels('mahdi_iptv.m3u8')
           elif 'ridoyiptv.m3u' in files:
               name = 'Pulse Stream Server 2'
-              stats_file = 'ridoy_scan_stats.json'
+              count = count_channels('ridoyiptv.m3u')
           else:
               print('No playlist changed, skip')
               exit(0)
-
-          # Read count
-          count = '?'
-          if os.path.exists(stats_file):
-              with open(stats_file) as f:
-                  s = json.load(f)
-              count = s.get('alive', s.get('total', '?'))
 
           # Get timestamp in BD time
           raw_ts = subprocess.run(['git', 'log', '-1', '--pretty=format:%ci'], capture_output=True, text=True).stdout.strip()
