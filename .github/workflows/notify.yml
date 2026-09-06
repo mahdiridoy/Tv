@@ -101,12 +101,12 @@ jobs:
           stats_file = None
 
           if 'mahdi_iptv.m3u8' in all_files:
-              filename = 'Pulse Stream'
+              filename = 'Pulse Stream Server 1'
               url = 'https://mahdiridoy.github.io/Tv/mahdi_iptv.m3u8'
               source = 'LOCAL CHECK'
               stats_file = 'mahdi_scan_stats.json'
           elif 'ridoyiptv.m3u' in all_files:
-              filename = 'Ridoy IPTV'
+              filename = 'Pulse Stream Server 2'
               url = 'https://mahdiridoy.github.io/Tv/ridoyiptv.m3u'
               source = 'ONLINE CHECK'
               stats_file = 'ridoy_scan_stats.json'
