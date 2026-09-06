@@ -13,7 +13,7 @@ on:
 jobs:
   notify:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 5
 
     steps:
       - name: Verify Telegram secrets
@@ -36,31 +36,55 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-
-      - name: Install dependencies
-        run: pip install requests
-
-      - name: Validate mahdi_iptv.m3u8 links
+      - name: Count valid channels in mahdi_iptv.m3u8
         run: |
           if git show --name-only --pretty=format: ${{ github.sha }} | grep -q "mahdi_iptv.m3u8"; then
-            echo "mahdi_iptv.m3u8 changed - validating links..."
-            python scan_valid.py mahdi_iptv.m3u8 mahdi_iptv.m3u8 --stats-file mahdi_scan_stats.json
+            echo "mahdi_iptv.m3u8 changed - counting valid channels..."
+            python -c "
+          import json, re
+
+          with open('mahdi_iptv.m3u8', encoding='utf-8', errors='ignore') as f:
+              lines = f.readlines()
+
+          total = 0
+          alive = 0
+          dead = 0
+          i = 0
+          while i < len(lines):
+              line = lines[i].strip()
+              if line.startswith('#EXTINF'):
+                  total += 1
+                  # find next non-empty, non-comment line = URL
+                  j = i + 1
+                  while j < len(lines) and (not lines[j].strip() or lines[j].strip().startswith('#')):
+                      j += 1
+                  if j < len(lines):
+                      url = lines[j].strip()
+                      if url.startswith('http') and len(url) > 10:
+                          alive += 1
+                      else:
+                          dead += 1
+                  else:
+                      dead += 1
+                  i = j + 1
+              else:
+                  i += 1
+
+          print(f'Total: {total}, Alive (with URL): {alive}, Dead (no/broken URL): {dead}')
+          open('mahdi_scan_stats.json', 'w').write(json.dumps({'total': total, 'alive': alive, 'dead': dead}, indent=2))
+          "
             ALIVE=$(python -c "import json; print(json.load(open('mahdi_scan_stats.json'))['alive'])")
             git config user.email "bot@iptv.local"
             git config user.name "IPTV Bot"
-            git add mahdi_iptv.m3u8 mahdi_scan_stats.json
+            git add mahdi_scan_stats.json
             if ! git diff --cached --quiet; then
-              git commit -m "Auto validate: mahdi_scan_stats.json ($ALIVE alive channels)"
+              git commit -m "Auto count: mahdi_scan_stats.json ($ALIVE alive channels)"
               git push origin main || echo "Push failed, will still notify"
             else
-              echo "No changes after validation"
+              echo "No stats change"
             fi
           else
-            echo "Not a mahdi upload, skip validation"
+            echo "Not a mahdi upload, skip"
           fi
 
       - name: Send Telegram notification
