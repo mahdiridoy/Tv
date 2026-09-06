@@ -1,4 +1,4 @@
-name: IPTV PRO Auto Engine
+name: Pulse Stream TV Auto Engine
 
 on:
   schedule:
@@ -11,7 +11,7 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 200
+    timeout-minutes: 59
 
     steps:
       - name: Checkout repository
