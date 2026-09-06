@@ -36,26 +36,31 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Generate mahdi_scan_stats.json (for manual mahdi upload)
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install requests
+
+      - name: Validate mahdi_iptv.m3u8 links
+        if: |
+          github.event.head_commit.message == 'Add files via upload' ||
+          contains(github.event.head_commit.message, 'mahdi_iptv.m3u8')
         run: |
           if git diff --name-only HEAD~1 HEAD | grep -q "mahdi_iptv.m3u8" || git show --name-only --pretty=format: HEAD | grep -q "mahdi_iptv.m3u8"; then
-            echo "mahdi_iptv.m3u8 changed - counting channels..."
-            COUNT=$(grep -c "^#EXTINF" mahdi_iptv.m3u8 || echo 0)
-            echo "Total channels: $COUNT"
-            python -c "
-          import json
-          c=int(open('mahdi_iptv.m3u8',encoding='utf-8',errors='ignore').read().count('#EXTINF'))
-          open('mahdi_scan_stats.json','w').write(json.dumps({'total':c}, indent=2))
-          print(f'Generated mahdi_scan_stats.json with {c} total channels')
-          "
+            echo "mahdi_iptv.m3u8 changed - validating links..."
+            python scan_valid.py mahdi_iptv.m3u8 mahdi_iptv.m3u8 --stats-file mahdi_scan_stats.json
+            ALIVE=$(python -c "import json; print(json.load(open('mahdi_scan_stats.json'))['alive'])")
             git config user.email "bot@iptv.local"
             git config user.name "IPTV Bot"
-            git add mahdi_scan_stats.json
+            git add mahdi_iptv.m3u8 mahdi_scan_stats.json
             if ! git diff --cached --quiet; then
-              git commit -m "Auto count: mahdi_scan_stats.json ($COUNT channels)"
-              git push origin main || echo "Push failed, will still notify with local count"
+              git commit -m "Auto validate: mahdi_scan_stats.json ($ALIVE alive channels)"
+              git push origin main || echo "Push failed, will still notify"
             else
-              echo "No stats change"
+              echo "No changes after validation"
             fi
           else
             echo "Not a mahdi upload, skip"
