@@ -63,58 +63,6 @@ https://canalmalaga-tv-live.flumotion.com/playlist.m3u8
 https://d2qm50imcbcfqx.cloudfront.net/nlpo/clr-nlpo/haarlem105/index.m3u8
 #EXTINF:-1 tvg-id="RTV.at@SD" tvg-logo="https://i.imgur.com/yu8ugqt.png" tvg-chno="14",RTV (1080p) [Not 24/7]
 http://iptv.rtv-ooe.at/stream.m3u8
-#EXTINF:-1 tvg-id="RTV1.nl@SD" tvg-logo="https://s3.aynaott.com/storage/094587a26f2c5e4f2962104728ec8c5d" tvg-chno="14",RTV 1 (720p)
-https://dy7fxpkq4ggk8.cloudfront.net/nlpo/clr-nlpo/rtv1/index.m3u8
-#EXTINF:-1 tvg-id="RTVCanal57.sv@SD" tvg-logo="https://s3.aynaott.com/storage/094587a26f2c5e4f2962104728ec8c5d" tvg-chno="14",RTV Canal 57 (720p)
-https://stream.giostreaming.app/rtvcanal57/rtvcanal57.m3u8
-#EXTINF:-1 tvg-id="RTVDrenthe.nl@SD" tvg-logo="https://s3.aynaott.com/storage/094587a26f2c5e4f2962104728ec8c5d" tvg-chno="14",RTV Drenthe (1080p)
-https://cdn.rtvdrenthe.nl/live/rtvdrenthe/tv/index.m3u8
-#EXTINF:-1 tvg-id="RTVHB.ba@SD" tvg-logo="https://s3.aynaott.com/storage/094587a26f2c5e4f2962104728ec8c5d" tvg-chno="14",RTV Herceg-Bosne (576p) [Not 24/7]
-https://prd-hometv-live-open.spectar.tv/ERO_1_083/playlist.m3u8
-#EXTINF:-1 tvg-id="RTVLOVE.nl@SD" tvg-logo="https://s3.aynaott.com/storage/094587a26f2c5e4f2962104728ec8c5d" tvg-chno="14",RTV LOVE (720p)
-https://d2o8iss0ldenh4.cloudfront.net/nlpo/clr-nlpo/rtvlove/index.m3u8
-#EXTINF:-1 tvg-id="RadioTelevisionMarbella.es@SD" tvg-logo="https://s3.aynaott.com/storage/094587a26f2c5e4f2962104728ec8c5d" tvg-chno="14",RTV Marbella (720p)
-https://streaming.rtvmarbella.tv/hls/streamingweb.m3u8
-#EXTINF:-1 tvg-id="RTVMeppel.nl@SD" tvg-logo="https://s3.aynaott.com/storage/094587a26f2c5e4f2962104728ec8c5d" tvg-chno="14",RTV Meppel (720p)
-https://d2eanln3bsfb0d.cloudfront.net/nlpo/clr-nlpo/rtvmeppel/index.m3u8
-#EXTINF:-1 tvg-id="RTVNoord.nl@SD" tvg-logo="https://s3.aynaott.com/storage/094587a26f2c5e4f2962104728ec8c5d" tvg-chno="14",RTV Noord (720p) [Not 24/7]
-https://media.rtvnoord.nl/live/rtvnoord/tv/index.m3u8
-#EXTINF:-1 tvg-id="RTVNoordExtra.nl@SD" tvg-logo="https://s3.aynaott.com/storage/094587a26f2c5e4f2962104728ec8c5d" tvg-chno="14",RTV Noord Extra (1080p) [Not 24/7]
-https://media.rtvnoord.nl/live/rtvnoord/extra/index.m3u8
-#EXTINF:-1 tvg-id="RTVNoviPazar.rs@SD" tvg-logo="https://s3.aynaott.com/storage/094587a26f2c5e4f2962104728ec8c5d" tvg-chno="14",RTV Novi Pazar
-https://tv.rtvnp.rs/stream.m3u8
-#EXTINF:-1 tvg-id="RTVOost.nl@SD" tvg-logo="https://s3.aynaott.com/storage/094587a26f2c5e4f2962104728ec8c5d" tvg-chno="14",RTV Oost (720p)
-https://d34cg2bnc08ruf.cloudfront.net/live/rtvoost/tv/index.m3u8
-#EXTINF:-1 tvg-id="RTVParkstad.nl@SD" tvg-logo="https://s3.aynaott.com/storage/094587a26f2c5e4f2962104728ec8c5d" tvg-chno="14",RTV Parkstad (1080p)
-https://live.streamteam.eu:8443/parkstad/parkstad/tv/playlist.m3u8
-#EXTINF:-1 tvg-id="RTVPendimi.ch@SD" tvg-logo="https://s3.aynaott.com/storage/094587a26f2c5e4f2962104728ec8c5d" tvg-chno="14",RTV Pendimi (720p)
-https://www.rtvpendimi.com:19360/tvpendimi/tvpendimi.m3u8
-#EXTINF:-1 tvg-id="RTVPurmerend.nl@SD" tvg-logo="https://s3.aynaott.com/storage/094587a26f2c5e4f2962104728ec8c5d" tvg-chno="14",RTV Purmerend (720p)
-https://ms2.mx-cd.net/dtv-10/268-2641474/RTV_Purmerend_TV.smil/playlist.m3u8
-#EXTINF:-1 tvg-id="RTVRijnmond.nl@SD" tvg-logo="https://s3.aynaott.com/storage/094587a26f2c5e4f2962104728ec8c5d" tvg-chno="14",RTV Rijnmond (1080p)
-https://dcur8bjarl5c2.cloudfront.net/live/rijnmond/tv/index.m3u8
-#EXTINF:-1 tvg-id="RTVRijnmondExtra.nl@SD" tvg-logo="https://s3.aynaott.com/storage/094587a26f2c5e4f2962104728ec8c5d" tvg-chno="14",RTV Rijnmond Extra (1080p)
-http://dcur8bjarl5c2.cloudfront.net/live/rijnmond/tv-extra/index.m3u8
-#EXTINF:-1 tvg-id="RTVRijnstreekTV.nl@SD" tvg-logo="http://alixbd.com/assets/images/andtv.png" tvg-chno="14",RTV Rijnstreek TV (720p) [Not 24/7]
-https://ms7.mx-cd.net/tv/290-3222276/RTV_Rijnstreek.smil/playlist.m3u8
-#EXTINF:-1 tvg-id="RTV.ec@SD" tvg-logo="https://s3.aynaott.com/storage/094587a26f2c5e4f2962104728ec8c5d" tvg-chno="14",RTV Riobamba (720p) [Not 24/7]
-https://sv72.ecuaradiotv.net/rtvhd/live/manifest.m3u8
-#EXTINF:-1 tvg-id="RwandaTV.rw@SD" tvg-logo="https://s3.aynaott.com/storage/094587a26f2c5e4f2962104728ec8c5d" tvg-chno="14",RTV Rwanda (480p) [Not 24/7]
-http://197.243.19.131:1935/rtv25/rtv/chunklist.m3u8
-#EXTINF:-1 tvg-id="RTVSLOS.nl@SD" tvg-logo="https://s3.aynaott.com/storage/094587a26f2c5e4f2962104728ec8c5d" tvg-chno="14",RTV SLOS (720p)
-https://d3b6teev8t7bb2.cloudfront.net/nlpo/clr-nlpo/rtvslos/index.m3u8
-#EXTINF:-1 tvg-id="RTVUtrecht.nl@SD" tvg-logo="https://s3.aynaott.com/storage/094587a26f2c5e4f2962104728ec8c5d" tvg-chno="14",RTV Utrecht (1080p)
-https://d18rwjdhpr8dcw.cloudfront.net/live/rtvutrecht/rtvutrecht/index.m3u8
-#EXTINF:-1 tvg-id="RTVVeluwezoomTV.nl@SD" tvg-logo="https://s3.aynaott.com/storage/094587a26f2c5e4f2962104728ec8c5d" tvg-chno="14",RTV Veluwezoom (720p)
-https://dt4pogjgi3q8s.cloudfront.net/nlpo/clr-nlpo/rtvveluwezoom/index.m3u8
-#EXTINF:-1 tvg-id="RTVWesterwolde.nl@SD" tvg-logo="https://s3.aynaott.com/storage/094587a26f2c5e4f2962104728ec8c5d" tvg-chno="14",RTV Westerwolde (432p)
-https://media.rtvwesterwolde.nl/hls/live/index.m3u8
-#EXTINF:-1 tvg-id="RTVZenica.ba@SD" tvg-logo="https://s3.aynaott.com/storage/094587a26f2c5e4f2962104728ec8c5d" tvg-chno="14",RTV Zenica (720p)
-https://stream.rtvze.ba/live/123/123.m3u8
-#EXTINF:-1 tvg-id="RTVZulthe.nl@SD" tvg-logo="https://s3.aynaott.com/storage/094587a26f2c5e4f2962104728ec8c5d" tvg-chno="14",RTV Zulthe (720p)
-http://ms7.mx-cd.net/tv/212-1299944/RTV-Zulthe.smil/playlist.m3u8
-#EXTINF:-1 tvg-id="SunRTV.tr@SD" tvg-logo="https://s3.aynaott.com/storage/094587a26f2c5e4f2962104728ec8c5d" tvg-chno="14",Sun RTV (720p) [Not 24/7]
-https://live.artidijitalmedya.com/artidijital_sunrtv/sunrtv/playlist.m3u8
 #EXTINF:-1 tvg-id="9a94b22f-c4a4-4150-8eb9-129d0ddeb934" tvg-name="Maasranga TV" tvg-logo="http://alixbd.com/assets/images/maasranga.png" tvg-chno="15",Maasranga TV
 https://tvsen5.aynaott.com/maasrangatv/index.m3u8?e=1784102562&u=ee5437a7-c16b-4700-b317-a41b77d5cba9&token=2044540ee613d44b1175f2885b2ab1ee
 #EXTINF:-1 tvg-name="Maasranga TV (720p)" tvg-logo="http://alixbd.com/assets/images/maasranga.png" tvg-chno="15",Maasranga TV (720p)
@@ -12268,6 +12216,83 @@ https://stream2.jlntv.cn/sptv/sd/live.m3u8
 #EXTINF:-1 tvg-id="" tvg-logo="" tvg-chno="13216",嵊州综合 (720p) [Not 24/7]
 https://l.cztvcloud.com/channels/lantian/SXshengzhou1/720p.m3u8
 #EXTINF:-1 tvg-id="" tvg-logo="" tvg-chno="13221",延边新闻综合 [Geo-blocked]
+https://stream2.jlntv.cn/jlyb/sd/live.m3u8
+#EXTINF:-1 tvg-id="" tvg-logo="" tvg-chno="13238",新昌休闲影视 (1080p) [Not 24/7]
+https://l.cztvcloud.com/channels/lantian/SXxinchang2/720p.m3u8
+#EXTINF:-1 tvg-id="" tvg-logo="" tvg-chno="13239",新昌新聞綜合 (1080p) [Not 24/7]
+https://l.cztvcloud.com/channels/lantian/SXxinchang1/720p.m3u8
+#EXTINF:-1 tvg-id="" tvg-logo="" tvg-chno="13260",松原新闻综合 [Geo-blocked]
+https://stream2.jlntv.cn/sytv/sd/live.m3u8
+#EXTINF:-1 tvg-id="" tvg-logo="" tvg-chno="13262",欧美大片1
+http://epg.112114.xyz/douyu/20415
+#EXTINF:-1 tvg-id="" tvg-logo="" tvg-chno="13263",欧美大片2
+http://epg.112114.xyz/douyu/2793084
+#EXTINF:-1 tvg-id="" tvg-logo="" tvg-chno="13265",武进新闻 (576p) [Not 24/7]
+https://live.wjyanghu.com/live/CH1.m3u8
+#EXTINF:-1 tvg-id="" tvg-logo="" tvg-chno="13266",武进生活 (576p) [Not 24/7]
+https://live.wjyanghu.com/live/CH2.m3u8
+#EXTINF:-1 tvg-id="" tvg-logo="" tvg-chno="13267",江津新闻综合 (480p)
+http://222.179.155.21:1935/ch1.m3u8
+#EXTINF:-1 tvg-id="" tvg-logo="" tvg-chno="13268",江津经济生活 (480p)
+#EXTVLCOPT:iptv-checker-audio-only=1
+http://222.179.155.21:1935/ch0.m3u8
+#EXTINF:-1 tvg-id="" tvg-logo="" tvg-chno="13280",浙江 Ⅰ 绍兴影视 (720p)
+http://live.shaoxing.com.cn/video/s10001-sxtv3/index.m3u8
+#EXTINF:-1 tvg-id="" tvg-logo="" tvg-chno="13281",浙江 Ⅰ 绍兴综合 (576p)
+http://live.shaoxing.com.cn/video/s10001-sxtv1/index.m3u8
+#EXTINF:-1 tvg-id="" tvg-logo="" tvg-chno="13285",浙江国际
+https://ali-m-l.cztv.com/channels/lantian/channel010/1080p.m3u8
+#EXTINF:-1 tvg-id="" tvg-logo="" tvg-chno="13286",浙江教科
+https://ali-m-l.cztv.com/channels/lantian/channel004/1080p.m3u8
+#EXTINF:-1 tvg-id="" tvg-logo="" tvg-chno="13287",浙江新闻
+https://ali-m-l.cztv.com/channels/lantian/channel007/1080p.m3u8
+#EXTINF:-1 tvg-id="" tvg-logo="" tvg-chno="13288",浙江民生
+https://ali-m-l.cztv.com/channels/lantian/channel006/1080p.m3u8
+#EXTINF:-1 tvg-id="" tvg-logo="" tvg-chno="13289",浙江经济
+https://ali-m-l.cztv.com/channels/lantian/channel003/1080p.m3u8
+#EXTINF:-1 tvg-id="" tvg-logo="" tvg-chno="13290",浙江钱江
+https://ali-m-l.cztv.com/channels/lantian/channel002/1080p.m3u8
+#EXTINF:-1 tvg-id="BaichengTV.cn@SD" tvg-logo="https://www.tvchinese.net/uploads/tv/baicheng.jpg" tvg-chno="13309",白城新闻综合 [Geo-blocked]
+https://stream2.jlntv.cn/baicheng1/sd/live.m3u8
+#EXTINF:-1 tvg-id="" tvg-logo="" tvg-chno="13310",白山新闻综合 [Geo-blocked]
+https://stream2.jlntv.cn/baishan1/sd/live.m3u8
+#EXTINF:-1 tvg-id="" tvg-logo="" tvg-chno="13318",福州广播电视台新闻综合频道 (FZTV-1) (1080p)
+http://live.zohi.tv/video/s10001-fztv-1/index.m3u8
+#EXTINF:-1 tvg-id="" tvg-logo="" tvg-chno="13319",福州广播电视台都市生活频道 (FZTV-3) (1080p)
+http://live.zohi.tv/video/s10001-fztv-3/index.m3u8
+#EXTINF:-1 tvg-id="" tvg-logo="" tvg-chno="13320",福州电视台少儿频道 (FZTV-少儿) (1080p)
+http://live.zohi.tv/video/s10001-fztv-4/index.m3u8
+#EXTINF:-1 tvg-id="" tvg-logo="" tvg-chno="13321",萬州三峽移民 (576p)
+http://123.146.162.24:8017/c2F0hmi/1000/live.m3u8
+#EXTINF:-1 tvg-id="" tvg-logo="" tvg-chno="13342",荣昌综合 (404p) [Not 24/7]
+http://183.64.181.25:40023/rongchang01.m3u8
+#EXTINF:-1 tvg-id="" tvg-logo="" tvg-chno="13349",萧山新闻综合 (720p) [Not 24/7]
+https://l.cztvcloud.com/channels/lantian/SXxiaoshan1/720p.m3u8
+#EXTINF:-1 tvg-id="" tvg-logo="" tvg-chno="13351",蕭山生活頻道 (720p) [Not 24/7]
+https://l.cztvcloud.com/channels/lantian/SXxiaoshan2/720p.m3u8
+#EXTINF:-1 tvg-id="" tvg-logo="" tvg-chno="13367",辽源新闻综合 [Geo-blocked]
+https://stream2.jlntv.cn/liaoyuan1/sd/live.m3u8
+#EXTINF:-1 tvg-id="" tvg-logo="" tvg-chno="13368",通化新闻 [Geo-blocked]
+https://stream2.jlntv.cn/tonghua1/sd/live.m3u8
+#EXTINF:-1 tvg-id="" tvg-logo="" tvg-chno="13375",长春综合 [Geo-blocked]
+https://stream2.jlntv.cn/jlcc/sd/live.m3u8
+#EXTINF:-1 tvg-id="" tvg-logo="" tvg-chno="13387",集安综合 [Geo-blocked]
+https://stream2.jlntv.cn/ja/sd/live.m3u8
+#EXTINF:-1 tvg-id="" tvg-logo="" tvg-chno="13394",餘姚姚江文化 (576p) [Not 24/7]
+https://l.cztvcloud.com/channels/lantian/SXyuyao2/720p.m3u8
+#EXTINF:-1 tvg-logo="https://i.postimg.cc/0yzwt46Q/20241126-220214.png" tvg-chno="13407",Ten Cricket
+https://stream.ottplus.bd/live/ten_cricket_hd_abr/live/ten_cricket_hd_720/chunks.m3u8
+#EXTINF:-1 tvg-logo="https://abusaeeidx.github.io/Tv-Channel-Logo/CricHD/runded/38-by-xfireflix.png" tvg-chno="13408",Willow HD
+https://warm-caverns-48629-92fab798385f.herokuapp.com/https://d36r8jifhgsk5j.cloudfront.net/Willow_TV540p.m3u8
+#EXTINF:-1 tvg-logo="http://alixbd.com/assets/images/andtv.png" tvg-chno="13410",Anando TV
+https://tvsen6.aynaott.com/LeUAm4F1iixYns3s3Non/tracks-v1a1/mono.ts.m3u8
+#EXTINF:-1 tvg-id="" tvg-logo="https://static.wikia.nocookie.net/logopedia/images/7/7c/HBO_Movies_2025.svg" tvg-chno="13413",EN | HBO Movies
+http://23.237.104.106:8080/USA_HBO_ZONE/index.m3u8
+#EXTINF:-1 tvg-logo="https://web.aynaott.com/storage/019dd92f-107c-7056-9e79-e5233f6e51d9/uploads/images/2026-07-16/images_bea6d56aa19a59e2bc272736880a97f3_playmist_bbc_news_400x400.jpg" tvg-chno="13416",BBC World
+https://tvsen1.aynaott.com/shn6jGTk/index.m3u8
+#EXTINF:-1 tvg-id="" tvg-logo="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQj4QJIbm5AJUR2DxA4ChOekh2jveNwgRSfqjvBkoyomA&s=10" tvg-chno="13417",Baallee
+https://mcncdndigital.com/balleballetv/tracks-v1a1/mono.ts.m3u8
+]
 https://stream2.jlntv.cn/jlyb/sd/live.m3u8
 #EXTINF:-1 tvg-id="" tvg-logo="" tvg-chno="13238",新昌休闲影视 (1080p) [Not 24/7]
 https://l.cztvcloud.com/channels/lantian/SXxinchang2/720p.m3u8
