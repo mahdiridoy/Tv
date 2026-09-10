@@ -55,7 +55,7 @@ MIN_BYTES_DIRECT = 500 * 1024       # 500KB for direct streams
 MIN_BYTES_HLS = 128 * 1024          # 128KB for HLS segments
 
 # Minimum bitrate (FFmpeg) — streams below this are dead
-MIN_BITRATE_KBPS = 200
+MIN_BITRATE_KBPS = 128
 
 # HLS configuration
 MAX_HLS_DEPTH = 4                   # Max recursive depth for variant playlists
@@ -73,15 +73,14 @@ PLACEHOLDER_PATHS = [
 ]
 
 # Timeouts (seconds)
-TIMEOUT_SHORT = 3                   # Short timeout for first pass
-TIMEOUT_LONG = 8                    # Longer timeout for failed first pass
+TIMEOUT = 3                         # Single timeout like .exe
 MAX_LATENCY_MS = 3000               # Max acceptable latency in ms
 
 # Workers and retries
-MAX_WORKERS = 500                   # Parallel threads
-TRIPLE_CHECKS = 3                   # Must pass 3 consecutive checks
-MAX_RETRIES = 0                     # Max retries with exponential backoff (0 = one-shot)
-INITIAL_BACKOFF = 0.5               # Initial backoff in seconds
+MAX_WORKERS = min(16, (os.cpu_count() or 4) * 4)  # Auto-detect like .exe
+SINGLE_CHECK = 1                    # Single check like .exe (no triple-check)
+MAX_RETRIES = 0                     # No retries (one-shot)
+INITIAL_BACKOFF = 0.5               # Not used with 0 retries
 
 # Headers
 HEADERS = {
@@ -294,9 +293,9 @@ def _follow_hls_recursive(url: str, depth: int = 0) -> Tuple[bool, str, int, Opt
     
     try:
         # Fetch the manifest
-        r = session.get(url, timeout=(TIMEOUT_SHORT, TIMEOUT_SHORT), 
+        r = session.get(url, timeout=(TIMEOUT, TIMEOUT), 
                        allow_redirects=True, stream=True, verify=False)
-        _enforce_socket_timeout(r, TIMEOUT_SHORT)
+        _enforce_socket_timeout(r, TIMEOUT)
         
         # Read content
         content = b''
@@ -347,7 +346,7 @@ def _follow_hls_recursive(url: str, depth: int = 0) -> Tuple[bool, str, int, Opt
             
             for seg_url in segments_to_check:
                 try:
-                    seg_r = session.get(seg_url, timeout=(TIMEOUT_SHORT, TIMEOUT_SHORT),
+                    seg_r = session.get(seg_url, timeout=(TIMEOUT, TIMEOUT),
                                        stream=True, verify=False)
                     seg_content = b''
                     for chunk in seg_r.iter_content(chunk_size=8192):
@@ -383,7 +382,7 @@ def _follow_hls_recursive(url: str, depth: int = 0) -> Tuple[bool, str, int, Opt
 # MAIN CHECK FUNCTION
 # ═══════════════════════════════════════════════════════════════════════════════
 
-def _single_probe(url: str, timeout: int = TIMEOUT_SHORT, 
+def _single_probe(url: str, timeout: int = TIMEOUT, 
                   max_retries: int = MAX_RETRIES) -> Tuple[bool, int, int, str, Optional[str], Optional[float]]:
     """
     Single probe with retry and exponential backoff.
@@ -528,36 +527,17 @@ def _single_probe(url: str, timeout: int = TIMEOUT_SHORT,
 
 def check_url(extinf_url: Tuple[str, str]) -> Tuple[str, str, bool, int, int, Optional[str], Optional[float], str]:
     """
-    Triple-check: must pass 3 consecutive probes.
+    Single check like .exe: one probe, one result.
     Returns: (extinf, url, is_alive, status, latency_ms, drm_type, bitrate_kbps, reason)
     """
     extinf, url = extinf_url
-    latencies = []
-    last_status = 0
-    last_drm = None
-    last_bitrate = None
-    last_reason = "unknown"
     
-    for attempt in range(TRIPLE_CHECKS):
-        # First attempt uses short timeout, second uses long timeout
-        timeout = TIMEOUT_SHORT if attempt == 0 else TIMEOUT_LONG
-        alive, status, latency, reason, drm_type, bitrate_kbps = _single_probe(url, timeout=timeout)
-        last_status = status
-        last_drm = drm_type
-        last_bitrate = bitrate_kbps
-        last_reason = reason
-        
-        if not alive:
-            return extinf, url, False, status, latency, last_drm, last_bitrate, last_reason
-        
-        latencies.append(latency)
-        
-        if attempt < TRIPLE_CHECKS - 1:
-            time.sleep(0.2)  # Small gap between checks
+    alive, status, latency, reason, drm_type, bitrate_kbps = _single_probe(url, timeout=TIMEOUT)
     
-    # All 3 passed - use median latency
-    median_lat = int(statistics.median(latencies)) if latencies else 0
-    return extinf, url, True, last_status, median_lat, last_drm, last_bitrate, "ok"
+    if not alive:
+        return extinf, url, False, status, latency, drm_type, bitrate_kbps, reason
+    
+    return extinf, url, True, status, latency, drm_type, bitrate_kbps, "ok"
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -608,7 +588,7 @@ def scan_links(entries: List[Tuple[str, str]], workers: int = MAX_WORKERS) -> Tu
     if total == 0:
         return [], {"alive": 0, "dead": 0, "total": 0}
     
-    log.info(f"Deep scanning {total} channels (TRIPLE-CHECK, {TRIPLE_CHECKS}x, "
+    log.info(f"Deep scanning {total} channels (timeout {TIMEOUT}s, "
              f"min {MIN_BYTES_DIRECT//1024}KB direct, {MIN_BYTES_HLS//1024}KB HLS, "
              f"min bitrate {MIN_BITRATE_KBPS}kbps)...")
     
@@ -747,12 +727,11 @@ def main():
     print(f"{'='*60}")
     print(f"  Input:              {os.path.abspath(args.input)}")
     print(f"  Output:             {os.path.abspath(args.output)}")
-    print(f"  Timeout:            {TIMEOUT_SHORT}s/{TIMEOUT_LONG}s")
+    print(f"  Timeout:            {TIMEOUT}s")
     print(f"  Retries:            {MAX_RETRIES}")
     print(f"  Concurrency:        {MAX_WORKERS} (AUTO)")
     print(f"  Bitrate profiling:  true")
     print(f"  Min bitrate:        {MIN_BITRATE_KBPS} kbps")
-    print(f"  Triple-check:       {TRIPLE_CHECKS}x")
     print(f"{'='*60}")
     
     entries = parse_m3u(args.input)
