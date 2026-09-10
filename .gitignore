@@ -6,7 +6,26 @@ venv/
 # Pytest
 .pytest_cache/
 
-# Old output from processor.py
-output.m3u
-stats.json
-stats.txt
+# Intermediate files
+merged.m3u
+scan.m3u
+mahdi_iptv.m3u8
+mahdi_scan_stats.json
+test_output.m3u
+test_small.m3u8
+
+# Auto-generated output files
+ridoyiptv.m3u
+ridoy_scan_stats.json
+
+# Logs
+TaskRunner.log
+automation_logs/
+automation-logs/
+
+# Local scripts
+run.ps1
+TaskRunner.ps1
+
+# Tools
+IPTVChecker-Headless/
