@@ -74,14 +74,14 @@ PLACEHOLDER_PATHS = [
 ]
 
 # Timeouts (seconds)
-TIMEOUT = 3                         # Single timeout like .exe
-MAX_LATENCY_MS = 3000               # Max acceptable latency in ms
+TIMEOUT = 6                         # Single timeout like .exe
+MAX_LATENCY_MS = 6000               # Max acceptable latency in ms
 
 # Workers and retries
-MAX_WORKERS = min(16, (os.cpu_count() or 4) * 4)  # Auto-detect like .exe
+MAX_WORKERS = min(24, (os.cpu_count() or 4) * 6)  # Auto-detect like .exe
 SINGLE_CHECK = 1                    # Single check like .exe (no triple-check)
-MAX_RETRIES = 0                     # No retries (one-shot)
-INITIAL_BACKOFF = 0.5               # Not used with 0 retries
+MAX_RETRIES = 1                     # One retry
+INITIAL_BACKOFF = 0.5               # Initial backoff in seconds
 
 # Headers
 HEADERS = {
