@@ -23,6 +23,7 @@ import logging
 import os
 import re
 import statistics
+import subprocess
 import sys
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -53,6 +54,9 @@ log = logging.getLogger(__name__)
 MIN_BYTES_DIRECT = 500 * 1024       # 500KB for direct streams
 MIN_BYTES_HLS = 128 * 1024          # 128KB for HLS segments
 
+# Minimum bitrate (FFmpeg) — streams below this are dead
+MIN_BITRATE_KBPS = 200
+
 # HLS configuration
 MAX_HLS_DEPTH = 4                   # Max recursive depth for variant playlists
 
@@ -76,7 +80,7 @@ MAX_LATENCY_MS = 3000               # Max acceptable latency in ms
 # Workers and retries
 MAX_WORKERS = 500                   # Parallel threads
 TRIPLE_CHECKS = 3                   # Must pass 3 consecutive checks
-MAX_RETRIES = 2                     # Max retries with exponential backoff
+MAX_RETRIES = 0                     # Max retries with exponential backoff (0 = one-shot)
 INITIAL_BACKOFF = 0.5               # Initial backoff in seconds
 
 # Headers
@@ -184,6 +188,48 @@ def _check_body_errors(chunk: bytes) -> Optional[str]:
     for kw in ERROR_BODY_KEYWORDS:
         if kw in lower:
             return f"error_body:{kw.decode()}"
+    return None
+
+
+def _measure_bitrate_ffmpeg(url: str, timeout: int = 10) -> Optional[float]:
+    """
+    Measure video bitrate using FFmpeg. Returns kbps or None.
+    
+    Runs FFmpeg for up to `timeout` seconds of real time (not -t) and parses
+    the stderr output for the bitrate summary line.  If FFmpeg is not
+    installed, returns None gracefully so the caller can skip the check.
+    """
+    try:
+        result = subprocess.run(
+            [
+                'ffmpeg',
+                '-hide_banner',
+                '-loglevel', 'info',
+                '-i', url,
+                '-t', '5',
+                '-vn', '-sn', '-dn',
+                '-f', 'null',
+                '-',
+            ],
+            capture_output=True,
+            text=True,
+            timeout=timeout,
+            creationflags=subprocess.CREATE_NO_WINDOW if hasattr(subprocess, 'CREATE_NO_WINDOW') else 0,
+        )
+        # FFmpeg writes bitrate info to stderr
+        for line in result.stderr.split('\n'):
+            if 'bitrate=' in line.lower():
+                match = re.search(r'bitrate=\s*([\d.]+)\s*kbits/s', line, re.IGNORECASE)
+                if match:
+                    return float(match.group(1))
+    except FileNotFoundError:
+        # FFmpeg not installed on this system — skip gracefully
+        log.debug("FFmpeg not found — skipping bitrate check")
+    except subprocess.TimeoutExpired:
+        # FFmpeg timed out but may still have produced partial output
+        log.debug("FFmpeg timed out for %s", url)
+    except Exception as exc:
+        log.debug("FFmpeg error for %s: %s", url, exc)
     return None
 
 
@@ -338,10 +384,10 @@ def _follow_hls_recursive(url: str, depth: int = 0) -> Tuple[bool, str, int, Opt
 # ═══════════════════════════════════════════════════════════════════════════════
 
 def _single_probe(url: str, timeout: int = TIMEOUT_SHORT, 
-                  max_retries: int = MAX_RETRIES) -> Tuple[bool, int, int, str, Optional[str]]:
+                  max_retries: int = MAX_RETRIES) -> Tuple[bool, int, int, str, Optional[str], Optional[float]]:
     """
     Single probe with retry and exponential backoff.
-    Returns: (alive, status, latency_ms, reason, drm_type)
+    Returns: (alive, status, latency_ms, reason, drm_type, bitrate_kbps)
     """
     last_reason = "unknown"
     last_status = 0
@@ -352,7 +398,7 @@ def _single_probe(url: str, timeout: int = TIMEOUT_SHORT,
             
             # Check if it's a placeholder URL
             if _is_placeholder_url(url):
-                return False, 0, 0, "placeholder_url", None
+                return False, 0, 0, "placeholder_url", None, None
             
             r = session.get(url, timeout=(timeout, timeout), 
                           allow_redirects=True, stream=True, verify=False)
@@ -372,7 +418,7 @@ def _single_probe(url: str, timeout: int = TIMEOUT_SHORT,
                     r.close()
                 except:
                     pass
-                return False, status, latency, geoblock_reason, None
+                return False, status, latency, geoblock_reason, None, None
             
             # Check status code
             if not (200 <= status < 300):
@@ -385,7 +431,7 @@ def _single_probe(url: str, timeout: int = TIMEOUT_SHORT,
                     backoff = INITIAL_BACKOFF * (2 ** attempt)
                     time.sleep(backoff)
                     continue
-                return False, status, latency, last_reason, None
+                return False, status, latency, last_reason, None, None
             
             # Check for error body even with 200 status
             error_reason = _check_body_errors(chunk)
@@ -398,7 +444,7 @@ def _single_probe(url: str, timeout: int = TIMEOUT_SHORT,
                     backoff = INITIAL_BACKOFF * (2 ** attempt)
                     time.sleep(backoff)
                     continue
-                return False, status, latency, error_reason, None
+                return False, status, latency, error_reason, None, None
             
             # Check if it's HLS content
             try:
@@ -408,11 +454,15 @@ def _single_probe(url: str, timeout: int = TIMEOUT_SHORT,
                     is_valid, final_url, bytes_count, drm_type = _follow_hls_recursive(url)
                     if not is_valid:
                         if drm_type:
-                            return False, status, latency, f"drm:{drm_type}", drm_type
-                        return False, status, latency, "hls_invalid", None
+                            return False, status, latency, f"drm:{drm_type}", drm_type, None
+                        return False, status, latency, "hls_invalid", None, None
                     if bytes_count < MIN_BYTES_HLS:
-                        return False, status, latency, f"insufficient_bytes:{bytes_count}", None
-                    return True, status, latency, "ok", None
+                        return False, status, latency, f"insufficient_bytes:{bytes_count}", None, None
+                    # HLS passed — run FFmpeg bitrate check
+                    bitrate_kbps = _measure_bitrate_ffmpeg(url)
+                    if bitrate_kbps is not None and bitrate_kbps < MIN_BITRATE_KBPS:
+                        return False, status, latency, "low_bitrate", None, bitrate_kbps
+                    return True, status, latency, "ok", None, bitrate_kbps
             except:
                 pass
             
@@ -438,9 +488,13 @@ def _single_probe(url: str, timeout: int = TIMEOUT_SHORT,
                     backoff = INITIAL_BACKOFF * (2 ** attempt)
                     time.sleep(backoff)
                     continue
-                return False, status, latency, f"insufficient_bytes:{total_bytes}", None
+                return False, status, latency, f"insufficient_bytes:{total_bytes}", None, None
             
-            return True, status, latency, "ok", None
+            # Direct stream passed — run FFmpeg bitrate check
+            bitrate_kbps = _measure_bitrate_ffmpeg(url)
+            if bitrate_kbps is not None and bitrate_kbps < MIN_BITRATE_KBPS:
+                return False, status, latency, "low_bitrate", None, bitrate_kbps
+            return True, status, latency, "ok", None, bitrate_kbps
         
         except (requests.exceptions.Timeout, TimeoutError):
             last_reason = "timeout"
@@ -448,14 +502,14 @@ def _single_probe(url: str, timeout: int = TIMEOUT_SHORT,
                 backoff = INITIAL_BACKOFF * (2 ** attempt)
                 time.sleep(backoff)
                 continue
-            return False, 0, 0, last_reason, None
+            return False, 0, 0, last_reason, None, None
         except requests.exceptions.ConnectionError:
             last_reason = "conn_error"
             if attempt < max_retries:
                 backoff = INITIAL_BACKOFF * (2 ** attempt)
                 time.sleep(backoff)
                 continue
-            return False, 0, 0, last_reason, None
+            return False, 0, 0, last_reason, None, None
         except Exception as e:
             msg = str(e).lower()
             if "timed out" in msg or "timeout" in type(e).__name__.lower():
@@ -467,30 +521,34 @@ def _single_probe(url: str, timeout: int = TIMEOUT_SHORT,
                 backoff = INITIAL_BACKOFF * (2 ** attempt)
                 time.sleep(backoff)
                 continue
-            return False, 0, 0, last_reason, None
+            return False, 0, 0, last_reason, None, None
     
-    return False, last_status, 0, last_reason, None
+    return False, last_status, 0, last_reason, None, None
 
 
-def check_url(extinf_url: Tuple[str, str]) -> Tuple[str, str, bool, int, int, Optional[str]]:
+def check_url(extinf_url: Tuple[str, str]) -> Tuple[str, str, bool, int, int, Optional[str], Optional[float], str]:
     """
     Triple-check: must pass 3 consecutive probes.
-    Returns: (extinf, url, is_alive, status, latency_ms, drm_type)
+    Returns: (extinf, url, is_alive, status, latency_ms, drm_type, bitrate_kbps, reason)
     """
     extinf, url = extinf_url
     latencies = []
     last_status = 0
     last_drm = None
+    last_bitrate = None
+    last_reason = "unknown"
     
     for attempt in range(TRIPLE_CHECKS):
         # First attempt uses short timeout, second uses long timeout
         timeout = TIMEOUT_SHORT if attempt == 0 else TIMEOUT_LONG
-        alive, status, latency, reason, drm_type = _single_probe(url, timeout=timeout)
+        alive, status, latency, reason, drm_type, bitrate_kbps = _single_probe(url, timeout=timeout)
         last_status = status
         last_drm = drm_type
+        last_bitrate = bitrate_kbps
+        last_reason = reason
         
         if not alive:
-            return extinf, url, False, status, latency, last_drm
+            return extinf, url, False, status, latency, last_drm, last_bitrate, last_reason
         
         latencies.append(latency)
         
@@ -499,7 +557,7 @@ def check_url(extinf_url: Tuple[str, str]) -> Tuple[str, str, bool, int, int, Op
     
     # All 3 passed - use median latency
     median_lat = int(statistics.median(latencies)) if latencies else 0
-    return extinf, url, True, last_status, median_lat, last_drm
+    return extinf, url, True, last_status, median_lat, last_drm, last_bitrate, "ok"
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -551,16 +609,19 @@ def scan_links(entries: List[Tuple[str, str]], workers: int = MAX_WORKERS) -> Tu
         return [], {"alive": 0, "dead": 0, "total": 0}
     
     log.info(f"Deep scanning {total} channels (TRIPLE-CHECK, {TRIPLE_CHECKS}x, "
-             f"min {MIN_BYTES_DIRECT//1024}KB direct, {MIN_BYTES_HLS//1024}KB HLS)...")
+             f"min {MIN_BYTES_DIRECT//1024}KB direct, {MIN_BYTES_HLS//1024}KB HLS, "
+             f"min bitrate {MIN_BITRATE_KBPS}kbps)...")
     
     results: List[Optional[Tuple[str, str]]] = [None] * total
     dead = 0
     alive = 0
     latencies = []
+    bitrates = []
     error_counts = {}
     drm_channels = 0
     geoblocked = 0
     placeholders = 0
+    low_bitrate_removed = 0
     
     with ThreadPoolExecutor(max_workers=workers) as ex:
         future_to_idx = {ex.submit(check_url, entry): idx for idx, entry in enumerate(entries)}
@@ -569,17 +630,21 @@ def scan_links(entries: List[Tuple[str, str]], workers: int = MAX_WORKERS) -> Tu
         for fut in as_completed(future_to_idx):
             done += 1
             idx = future_to_idx[fut]
-            extinf, url, is_alive, status, latency, drm_type = fut.result()
+            extinf, url, is_alive, status, latency, drm_type, bitrate_kbps, reason = fut.result()
             
             if is_alive:
                 results[idx] = (extinf, url)
                 alive += 1
                 latencies.append(latency)
+                if bitrate_kbps is not None:
+                    bitrates.append(bitrate_kbps)
             else:
                 dead += 1
                 
                 # Categorize error
-                if status == 0:
+                if "low_bitrate" in reason:
+                    key = f"Low bitrate <{MIN_BITRATE_KBPS}kbps"
+                elif status == 0:
                     key = "Timeout/Error"
                 elif latency > MAX_LATENCY_MS:
                     key = f"Slow >{MAX_LATENCY_MS}ms"
@@ -588,13 +653,15 @@ def scan_links(entries: List[Tuple[str, str]], workers: int = MAX_WORKERS) -> Tu
                 
                 error_counts[key] = error_counts.get(key, 0) + 1
                 
-                # Track special cases
+                # Track special cases using reason from probe
                 if drm_type:
                     drm_channels += 1
-                if "geoblock" in (drm_type or ""):
+                if "geoblock" in reason:
                     geoblocked += 1
-                if "placeholder" in (drm_type or ""):
+                if "placeholder" in reason:
                     placeholders += 1
+                if "low_bitrate" in reason:
+                    low_bitrate_removed += 1
             
             # Log progress every 500 channels
             if done % 500 == 0 or done == total:
@@ -612,6 +679,12 @@ def scan_links(entries: List[Tuple[str, str]], workers: int = MAX_WORKERS) -> Tu
     else:
         avg_latency = median_latency = p95 = 0
     
+    # Calculate bitrate statistics
+    if bitrates:
+        avg_bitrate_kbps = round(sum(bitrates) / len(bitrates), 1)
+    else:
+        avg_bitrate_kbps = 0
+    
     # Log error breakdown
     if error_counts:
         log.info("Dead link breakdown:")
@@ -625,9 +698,13 @@ def scan_links(entries: List[Tuple[str, str]], workers: int = MAX_WORKERS) -> Tu
         log.info(f"Geoblocked channels (removed): {geoblocked}")
     if placeholders > 0:
         log.info(f"Placeholder URLs (removed): {placeholders}")
+    if low_bitrate_removed > 0:
+        log.info(f"Low bitrate channels (removed, <{MIN_BITRATE_KBPS}kbps): {low_bitrate_removed}")
     
     log.info(f"Done: {len(valid)} valid / {dead} dead / "
              f"avg {avg_latency}ms median {median_latency}ms p95 {p95}ms")
+    if bitrates:
+        log.info(f"Bitrate: avg {avg_bitrate_kbps}kbps across {len(bitrates)} measured streams")
     
     return valid, {
         "alive": len(valid),
@@ -636,6 +713,8 @@ def scan_links(entries: List[Tuple[str, str]], workers: int = MAX_WORKERS) -> Tu
         "avg_latency_ms": avg_latency,
         "median_latency_ms": median_latency,
         "p95_latency_ms": p95,
+        "avg_bitrate_kbps": avg_bitrate_kbps,
+        "low_bitrate_removed": low_bitrate_removed,
         "error_breakdown": error_counts,
         "drm_channels": drm_channels,
         "geoblocked": geoblocked,
@@ -686,7 +765,10 @@ def main():
     print(f"  Avg latency    : {stats['avg_latency_ms']} ms")
     print(f"  Median latency : {stats.get('median_latency_ms', '?')} ms")
     print(f"  P95 latency    : {stats.get('p95_latency_ms', '?')} ms")
+    print(f"  Avg bitrate    : {stats.get('avg_bitrate_kbps', 0)} kbps")
     
+    if stats.get('low_bitrate_removed', 0) > 0:
+        print(f"  Low bitrate    : {stats['low_bitrate_removed']} (removed <{MIN_BITRATE_KBPS}kbps)")
     if stats.get('drm_channels', 0) > 0:
         print(f"  DRM protected  : {stats['drm_channels']}")
     if stats.get('geoblocked', 0) > 0:
