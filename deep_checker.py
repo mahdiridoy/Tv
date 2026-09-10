@@ -22,6 +22,7 @@ import json
 import logging
 import os
 import re
+import shutil
 import statistics
 import subprocess
 import sys
@@ -721,17 +722,20 @@ def main():
         log.error(f"{args.input} not found")
         sys.exit(1)
     
+    # Check if ffmpeg is available
+    ffmpeg_path = shutil.which('ffmpeg') or 'ffmpeg'
+    
     # Header like .exe
     print(f"\n{'='*60}")
-    print(f"  IPTV Deep Checker v1.0 - PYTHON AUTOMATION")
+    print(f"  IPTV Checker v1.0 - HEADLESS AUTOMATION")
     print(f"{'='*60}")
     print(f"  Input:              {os.path.abspath(args.input)}")
     print(f"  Output:             {os.path.abspath(args.output)}")
-    print(f"  Timeout:            {TIMEOUT}s")
+    print(f"  Hide VOD/Series:    true")
+    print(f"  Timeout:            {TIMEOUT:.1f}s")
     print(f"  Retries:            {MAX_RETRIES}")
     print(f"  Concurrency:        {MAX_WORKERS} (AUTO)")
     print(f"  Bitrate profiling:  true")
-    print(f"  Min bitrate:        {MIN_BITRATE_KBPS} kbps")
     print(f"{'='*60}")
     
     entries = parse_m3u(args.input)
@@ -741,49 +745,30 @@ def main():
         print("  ERROR: No channels found")
         sys.exit(1)
     
-    print(f"{'='*60}")
     print(f"  Starting stream availability scan...")
-    print(f"{'='*60}")
     
     valid_entries, stats = scan_links(entries)
     
     write_m3u(args.output, valid_entries)
     
     with open(args.stats_file, "w", encoding="utf-8") as f:
-        json.dump(stats, indent=2, fp=f) if hasattr(json, 'dump') else None
         json.dump(stats, f, indent=2)
     
-    # Final results
+    # Results like .exe
     print(f"\n{'='*60}")
-    print(f"  FINAL RESULTS")
+    print(f"  Availability scan completed")
     print(f"{'='*60}")
-    print(f"  Input:              {os.path.abspath(args.input)}")
-    print(f"  Output:             {os.path.abspath(args.output)}")
-    print(f"  Total channels :    {stats['total']}")
-    print(f"  Alive channels :    {stats['alive']}")
-    print(f"  Dead channels  :    {stats['dead']}")
-    print(f"  Avg latency    :    {stats['avg_latency_ms']} ms")
-    print(f"  Median latency :    {stats.get('median_latency_ms', '?')} ms")
-    print(f"  P95 latency    :    {stats.get('p95_latency_ms', '?')} ms")
-    print(f"  Avg bitrate    :    {stats.get('avg_bitrate_kbps', 0)} kbps")
-    
-    if stats.get('low_bitrate_removed', 0) > 0:
-        print(f"  Low bitrate    :    {stats['low_bitrate_removed']} (removed <{MIN_BITRATE_KBPS}kbps)")
-    if stats.get('drm_channels', 0) > 0:
-        print(f"  DRM protected  :    {stats['drm_channels']}")
-    if stats.get('geoblocked', 0) > 0:
-        print(f"  Geoblocked     :    {stats['geoblocked']}")
-    if stats.get('placeholders', 0) > 0:
-        print(f"  Placeholders   :    {stats['placeholders']}")
-    
-    if stats.get('error_breakdown'):
-        print(f"\n  Dead breakdown:")
-        for err, cnt in sorted(stats['error_breakdown'].items(), key=lambda x: -x[1]):
-            print(f"    {err}: {cnt}")
-    
-    print(f"{'='*60}")
-    print(f"  Final Output:       {os.path.abspath(args.output)}")
-    print(f"  Stats:              {os.path.abspath(args.stats_file)}")
+    print(f"  Scanned:             {stats['total']}")
+    print(f"  Alive:               {stats['alive']}")
+    print(f"  Dead/Other:          {stats['dead']}")
+    print(f"  Geoblocked:          {stats.get('geoblocked', 0)}")
+    print(f"  DRM:                 {stats.get('drm_channels', 0)}")
+    print(f"")
+    print(f"  FFmpeg:              {ffmpeg_path}")
+    print(f"  Starting video bitrate profiling for Alive channels...")
+    print(f"")
+    print(f"  Final Output:        {os.path.abspath(args.output)}")
+    print(f"  Stats:               {os.path.abspath(args.stats_file)}")
     print(f"{'='*60}\n")
 
 
