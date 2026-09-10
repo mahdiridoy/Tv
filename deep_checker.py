@@ -665,7 +665,8 @@ def scan_links(entries: List[Tuple[str, str]], workers: int = MAX_WORKERS) -> Tu
             
             # Log progress every 500 channels
             if done % 500 == 0 or done == total:
-                log.info(f"  {done}/{total} checked — {alive} valid, {dead} dead")
+                pct = int(done * 100 / total) if total > 0 else 0
+                print(f"  [{done}/{total}] {pct}% — {alive} alive, {dead} dead")
     
     # Filter valid results
     valid = [r for r in results if r is not None]
@@ -740,47 +741,70 @@ def main():
         log.error(f"{args.input} not found")
         sys.exit(1)
     
+    # Header like .exe
+    print(f"\n{'='*60}")
+    print(f"  IPTV Deep Checker v1.0 - PYTHON AUTOMATION")
+    print(f"{'='*60}")
+    print(f"  Input:              {os.path.abspath(args.input)}")
+    print(f"  Output:             {os.path.abspath(args.output)}")
+    print(f"  Timeout:            {TIMEOUT_SHORT}s/{TIMEOUT_LONG}s")
+    print(f"  Retries:            {MAX_RETRIES}")
+    print(f"  Concurrency:        {MAX_WORKERS} (AUTO)")
+    print(f"  Bitrate profiling:  true")
+    print(f"  Min bitrate:        {MIN_BITRATE_KBPS} kbps")
+    print(f"  Triple-check:       {TRIPLE_CHECKS}x")
+    print(f"{'='*60}")
+    
     entries = parse_m3u(args.input)
-    log.info(f"Loaded {len(entries)} channels from {args.input}")
+    print(f"  Parsed {len(entries)} total playlist entries")
     
     if not entries:
-        log.error("No channels found")
+        print("  ERROR: No channels found")
         sys.exit(1)
+    
+    print(f"{'='*60}")
+    print(f"  Starting stream availability scan...")
+    print(f"{'='*60}")
     
     valid_entries, stats = scan_links(entries)
     
     write_m3u(args.output, valid_entries)
-    log.info(f"Saved {len(valid_entries)} valid channels -> {args.output}")
     
     with open(args.stats_file, "w", encoding="utf-8") as f:
+        json.dump(stats, indent=2, fp=f) if hasattr(json, 'dump') else None
         json.dump(stats, f, indent=2)
-    log.info(f"Stats saved -> {args.stats_file}")
     
+    # Final results
     print(f"\n{'='*60}")
-    print(f"  DEEP IPTV STREAM CHECKER RESULTS")
+    print(f"  FINAL RESULTS")
     print(f"{'='*60}")
-    print(f"  Total channels : {stats['total']}")
-    print(f"  Valid channels : {stats['alive']}")
-    print(f"  Dead channels  : {stats['dead']}")
-    print(f"  Avg latency    : {stats['avg_latency_ms']} ms")
-    print(f"  Median latency : {stats.get('median_latency_ms', '?')} ms")
-    print(f"  P95 latency    : {stats.get('p95_latency_ms', '?')} ms")
-    print(f"  Avg bitrate    : {stats.get('avg_bitrate_kbps', 0)} kbps")
+    print(f"  Input:              {os.path.abspath(args.input)}")
+    print(f"  Output:             {os.path.abspath(args.output)}")
+    print(f"  Total channels :    {stats['total']}")
+    print(f"  Alive channels :    {stats['alive']}")
+    print(f"  Dead channels  :    {stats['dead']}")
+    print(f"  Avg latency    :    {stats['avg_latency_ms']} ms")
+    print(f"  Median latency :    {stats.get('median_latency_ms', '?')} ms")
+    print(f"  P95 latency    :    {stats.get('p95_latency_ms', '?')} ms")
+    print(f"  Avg bitrate    :    {stats.get('avg_bitrate_kbps', 0)} kbps")
     
     if stats.get('low_bitrate_removed', 0) > 0:
-        print(f"  Low bitrate    : {stats['low_bitrate_removed']} (removed <{MIN_BITRATE_KBPS}kbps)")
+        print(f"  Low bitrate    :    {stats['low_bitrate_removed']} (removed <{MIN_BITRATE_KBPS}kbps)")
     if stats.get('drm_channels', 0) > 0:
-        print(f"  DRM protected  : {stats['drm_channels']}")
+        print(f"  DRM protected  :    {stats['drm_channels']}")
     if stats.get('geoblocked', 0) > 0:
-        print(f"  Geoblocked     : {stats['geoblocked']}")
+        print(f"  Geoblocked     :    {stats['geoblocked']}")
     if stats.get('placeholders', 0) > 0:
-        print(f"  Placeholders   : {stats['placeholders']}")
+        print(f"  Placeholders   :    {stats['placeholders']}")
     
     if stats.get('error_breakdown'):
         print(f"\n  Dead breakdown:")
         for err, cnt in sorted(stats['error_breakdown'].items(), key=lambda x: -x[1]):
             print(f"    {err}: {cnt}")
     
+    print(f"{'='*60}")
+    print(f"  Final Output:       {os.path.abspath(args.output)}")
+    print(f"  Stats:              {os.path.abspath(args.stats_file)}")
     print(f"{'='*60}\n")
 
 
