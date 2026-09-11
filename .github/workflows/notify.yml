@@ -101,20 +101,6 @@ jobs:
           print(f'Stats: {stats}')
           "
 
-      - name: Commit dedup changes
-        run: |
-          git config user.email "bot@iptv.local"
-          git config user.name "IPTV Bot"
-          git add mahdi_iptv.m3u8 mahdi_scan_stats.json
-          if ! git diff --cached --quiet; then
-            REMOVED=$(python -c "import json; print(json.load(open('mahdi_scan_stats.json'))['duplicates_removed'])")
-            ALIVE=$(python -c "import json; print(json.load(open('mahdi_scan_stats.json'))['alive'])")
-            git commit -m "Auto dedup: $REMOVED duplicates removed, $ALIVE channels"
-            git push origin main || echo "Push failed, will still notify"
-          else
-            echo "No duplicates found"
-          fi
-
       - name: Send Telegram notification
         env:
           TG_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
@@ -185,3 +171,18 @@ jobs:
           except Exception as e:
               print(f'Channel error: {e}')
           "
+
+      - name: Commit dedup changes
+        run: |
+          git config user.email "bot@iptv.local"
+          git config user.name "IPTV Bot"
+          git add mahdi_iptv.m3u8 || true
+          [ -f mahdi_scan_stats.json ] && git add mahdi_scan_stats.json || true
+          if ! git diff --cached --quiet; then
+            REMOVED=$(python -c "import json; print(json.load(open('mahdi_scan_stats.json'))['duplicates_removed'])")
+            ALIVE=$(python -c "import json; print(json.load(open('mahdi_scan_stats.json'))['alive'])")
+            git commit -m "Auto dedup: $REMOVED duplicates removed, $ALIVE channels"
+            git push origin main || echo "Push failed, will still notify"
+          else
+            echo "No duplicates found"
+          fi
