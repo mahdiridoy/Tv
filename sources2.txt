@@ -10,3 +10,4 @@ http://alixbd.com/2022.m3u
 https://da.gd/78hJf
 https://iptv-org.github.io/iptv/index.m3u
 https://raw.githubusercontent.com/shidul100/Iptv/refs/heads/main/playlist.m3u
+https://raw.githubusercontent.com/shouravoo8/MyBd/refs/heads/main/tvchannelsnetwork.m3u
