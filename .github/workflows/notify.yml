@@ -118,10 +118,22 @@ jobs:
               print('ERROR: Telegram secrets not set!')
               exit(1)
 
-          # Detect which file changed
-          diff = subprocess.run(['git', 'diff', '--name-only', 'HEAD~1', 'HEAD'], capture_output=True, text=True).stdout.strip()
-          files = diff.split('\n') if diff else []
-          print(f'Changed files: {files}')
+          # Detect which file changed using GitHub event context
+          changed_files = []
+          try:
+              event = json.loads(open(os.environ.get('GITHUB_EVENT_PATH', '/dev/null')).read())
+              for commit in event.get('commits', []):
+                  changed_files.extend(commit.get('added', []))
+                  changed_files.extend(commit.get('modified', []))
+          except:
+              pass
+          
+          # Fallback: check git diff
+          if not changed_files:
+              diff = subprocess.run(['git', 'diff', '--name-only', 'HEAD~1', 'HEAD'], capture_output=True, text=True).stdout.strip()
+              changed_files = diff.split('\n') if diff else []
+          
+          print(f'Changed files: {changed_files}')
 
           def count_channels(filepath):
               if not os.path.exists(filepath):
@@ -129,10 +141,10 @@ jobs:
               with open(filepath, encoding='utf-8', errors='ignore') as f:
                   return sum(1 for line in f if line.strip().startswith('#EXTINF'))
 
-          if 'mahdi_iptv.m3u8' in files:
+          if 'mahdi_iptv.m3u8' in changed_files:
               name = 'Pulse Stream Server 1'
               count = count_channels('mahdi_iptv.m3u8')
-          elif 'ridoyiptv.m3u' in files:
+          elif 'ridoyiptv.m3u' in changed_files:
               name = 'Pulse Stream Server 2'
               count = count_channels('ridoyiptv.m3u')
           else:
