@@ -1,14 +1,10 @@
-name: Telegram Notify on Push
-
-permissions:
-  contents: write
+name: Telegram Notify mahdi_iptv.m3u8
 
 on:
   push:
     branches: [main]
     paths:
       - 'mahdi_iptv.m3u8'
-      - 'ridoyiptv.m3u'
 
 jobs:
   notify:
@@ -16,90 +12,8 @@ jobs:
     timeout-minutes: 5
 
     steps:
-      - name: Verify Telegram secrets
-        env:
-          TG_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          TG_CHAT: ${{ secrets.TELEGRAM_CHAT_ID }}
-        run: |
-          if [ -z "$TG_TOKEN" ] || [ -z "$TG_CHAT" ]; then
-            echo "ERROR: Telegram secrets not configured!"
-            exit 1
-          fi
-          echo "Telegram secrets verified"
-
       - name: Checkout main
         uses: actions/checkout@v4
-
-      - name: Dedup & count mahdi_iptv.m3u8
-        run: |
-          python -c "
-          import json, os, subprocess
-
-          FILE = 'mahdi_iptv.m3u8'
-          STATS = 'mahdi_scan_stats.json'
-
-          if not os.path.exists(FILE):
-              print(f'{FILE} not found, skip')
-              exit(0)
-
-          with open(FILE, encoding='utf-8', errors='ignore') as f:
-              lines = f.readlines()
-
-          # Parse: (extinf_line, url)
-          entries = []
-          i = 0
-          while i < len(lines):
-              line = lines[i].strip()
-              if line.startswith('#EXTINF'):
-                  j = i + 1
-                  while j < len(lines) and (not lines[j].strip() or lines[j].strip().startswith('#')):
-                      j += 1
-                  if j < len(lines):
-                      url = lines[j].strip()
-                      entries.append((lines[i], url))
-                  i = j + 1
-              else:
-                  i += 1
-
-          total = len(entries)
-
-          # Dedup by name (case-insensitive) AND URL
-          seen_names = set()
-          seen_urls = set()
-          unique = []
-          removed_urls = []
-          removed_names = []
-          for extinf, url in entries:
-              name = extinf.split(',')[-1].strip().lower() if ',' in extinf else ''
-              is_dup = url in seen_urls or (name and name in seen_names)
-              if not is_dup:
-                  seen_urls.add(url)
-                  if name:
-                      seen_names.add(name)
-                  unique.append((extinf, url))
-              else:
-                  if url in seen_urls:
-                      removed_urls.append(url)
-                  if name and name in seen_names:
-                      removed_names.append(name)
-
-          duplicates = total - len(unique)
-          print(f'Before: {total}, Duplicates: {duplicates}, After: {len(unique)}')
-          if removed_names:
-              print(f'Removed names: {list(set(removed_names))[:10]}')
-
-          # Write deduped file
-          with open(FILE, 'w', encoding='utf-8') as f:
-              f.write('#EXTM3U\n')
-              for extinf, url in unique:
-                  f.write(f'{extinf}\n{url}\n')
-
-          # Write stats
-          stats = {'total': len(unique), 'alive': len(unique), 'duplicates_removed': duplicates}
-          with open(STATS, 'w') as f:
-              json.dump(stats, f, indent=2)
-          print(f'Stats: {stats}')
-          "
 
       - name: Send Telegram notification
         env:
@@ -108,7 +22,7 @@ jobs:
           TG_CHANNEL: ${{ secrets.TELEGRAM_CHANNEL }}
         run: |
           python -c "
-          import os, json, urllib.parse, urllib.request, subprocess
+          import os, urllib.parse, urllib.request
 
           token = os.environ.get('TG_TOKEN', '')
           chat_id = os.environ.get('TG_CHAT', '')
@@ -118,83 +32,34 @@ jobs:
               print('ERROR: Telegram secrets not set!')
               exit(1)
 
-          # Detect which file changed using GitHub event context
-          changed_files = []
-          try:
-              event = json.loads(open(os.environ.get('GITHUB_EVENT_PATH', '/dev/null')).read())
-              for commit in event.get('commits', []):
-                  changed_files.extend(commit.get('added', []))
-                  changed_files.extend(commit.get('modified', []))
-          except:
-              pass
-          
-          # Fallback: check git diff
-          if not changed_files:
-              diff = subprocess.run(['git', 'diff', '--name-only', 'HEAD~1', 'HEAD'], capture_output=True, text=True).stdout.strip()
-              changed_files = diff.split('\n') if diff else []
-          
-          print(f'Changed files: {changed_files}')
-
           def count_channels(filepath):
               if not os.path.exists(filepath):
                   return '?'
               with open(filepath, encoding='utf-8', errors='ignore') as f:
                   return sum(1 for line in f if line.strip().startswith('#EXTINF'))
 
-          if 'mahdi_iptv.m3u8' in changed_files:
-              name = 'Pulse Stream Server 1'
-              count = count_channels('mahdi_iptv.m3u8')
-          elif 'ridoyiptv.m3u' in changed_files:
-              name = 'Pulse Stream Server 2'
-              count = count_channels('ridoyiptv.m3u')
-          else:
-              print('No playlist changed, skip')
-              exit(0)
+          count = count_channels('mahdi_iptv.m3u8')
 
-          # Get timestamp in BD time
-          raw_ts = subprocess.run(['git', 'log', '-1', '--pretty=format:%ci'], capture_output=True, text=True).stdout.strip()
-          try:
-              from datetime import datetime
-              from zoneinfo import ZoneInfo
-              dt = datetime.strptime(raw_ts, '%Y-%m-%d %H:%M:%S %z')
-              dt_bd = dt.astimezone(ZoneInfo('Asia/Dhaka'))
-              ts = dt_bd.strftime('%Y-%m-%d %I:%M:%S %p +06:00')
-          except:
-              ts = raw_ts
+          from datetime import datetime
+          from zoneinfo import ZoneInfo
+          ts = datetime.now(ZoneInfo('Asia/Dhaka')).strftime('%Y-%m-%d %I:%M:%S %p +06:00')
 
-          msg = f'\u2705 {name}\n\U0001f4fa Live Channel: {count}\n\U0001f552 {ts}'
+          msg = f'\u2705 Pulse Stream Server 1\n\U0001f4fa Live Channel: {count}\n\U0001f552 {ts}'
           print(f'Message: {msg}')
 
           tg_url = f'https://api.telegram.org/bot{token}/sendMessage'
 
-          # Send to chat
           try:
               data = urllib.parse.urlencode({'chat_id': chat_id, 'text': msg}).encode()
-              resp = urllib.request.urlopen(urllib.request.Request(tg_url, data=data, method='POST'), timeout=10)
+              urllib.request.urlopen(urllib.request.Request(tg_url, data=data, method='POST'), timeout=10)
               print('Sent to chat OK')
           except Exception as e:
               print(f'Chat error: {e}')
 
-          # Forward to channel
           try:
               data = urllib.parse.urlencode({'chat_id': channel_id, 'text': msg}).encode()
-              resp = urllib.request.urlopen(urllib.request.Request(tg_url, data=data, method='POST'), timeout=10)
+              urllib.request.urlopen(urllib.request.Request(tg_url, data=data, method='POST'), timeout=10)
               print('Sent to channel OK')
           except Exception as e:
               print(f'Channel error: {e}')
           "
-
-      - name: Commit dedup changes
-        run: |
-          git config user.email "bot@iptv.local"
-          git config user.name "IPTV Bot"
-          git add mahdi_iptv.m3u8 || true
-          [ -f mahdi_scan_stats.json ] && git add mahdi_scan_stats.json || true
-          if ! git diff --cached --quiet; then
-            REMOVED=$(python -c "import json; print(json.load(open('mahdi_scan_stats.json'))['duplicates_removed'])")
-            ALIVE=$(python -c "import json; print(json.load(open('mahdi_scan_stats.json'))['alive'])")
-            git commit -m "Auto dedup: $REMOVED duplicates removed, $ALIVE channels"
-            git push origin main || echo "Push failed, will still notify"
-          else
-            echo "No duplicates found"
-          fi
