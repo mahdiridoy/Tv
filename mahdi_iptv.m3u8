@@ -220,7 +220,7 @@ https://duw35ict5q7th.cloudfront.net/index_3.m3u8
 #EXTINF:-1 tvg-chno="40",Zee Bharat
 https://dt3lrqnyx3dks.cloudfront.net/index.m3u8
 #EXTINF:-1 tvg-id="79c26f90-3a3e-43eb-9173-1c78bbbd5013" tvg-name="Sony ATTH" tvg-logo="https://s3.aynaott.com/storage/f7bfca4f0a3860067bf2eac37f41214c" tvg-chno="41",Sony ATTH
-https://live20.bozztv.com/giatvplayout7/giatv-209611/index.m3u8
+https://tv5.genatuz070.workers.dev/cdn/live/sonyaath/playlist.m3u8?hdnea=exp=1789409433~acl=/*~id=88806059630807692575678480901932~hmac=916dcbfd6209e61c08a385607cda33837c6271246dc0d551893ef0ef5e6e25e9
 #EXTINF:-1 tvg-name="Sony Sports 5 HD" tvg-chno="41",Sony Sports 5 HD
 https://stream.ottplus.live/live/ten_5_hd_abr/live/ten_5_hd_720/chunks.m3u8
 #EXTINF:-1 tvg-logo="https://alixbd.com/assets/images/sonyyay.png" tvg-chno="41",Sony YaY
