@@ -322,7 +322,7 @@
 
             transform-origin: left;
 
-                animation:
+            animation:
                 countdown 15s linear forwards;
         }
 
@@ -743,100 +743,40 @@
 
 
     <!-- =========================================================
-         15 SECOND COUNTDOWN THEN AUTO REDIRECT TO AD LINK
+         15 SECOND COUNTDOWN
          ========================================================= -->
 
     <script>
 
-        try {
+        (function () {
 
-            (function () {
+            var COUNTDOWN = 15;
 
-                var AD_URL =
-                    "https://omg10.com/4/10577292";
+            var remaining = COUNTDOWN;
 
-                var COUNTDOWN = 15;
+            var timer =
+                document.getElementById("timer");
 
-                var remaining = COUNTDOWN;
+            var tick =
+                setInterval(function () {
 
-                var timer =
-                    document.getElementById("timer");
+                    remaining--;
 
-                var progress =
-                    document.querySelector(".progress-fill");
+                    if (remaining <= 0) {
 
-                var bar =
-                    document.querySelector(".progress-bar");
+                        clearInterval(tick);
 
+                        timer.textContent = "Done";
 
-                function setAnim(sec) {
+                        return;
+                    }
 
-                    progress.style.animation =
-                        "none";
+                    timer.textContent =
+                        remaining;
 
-                    void progress.offsetWidth;
+                }, 1000);
 
-                    progress.style.animation =
-                        "countdown " + sec +
-                        "s linear forwards";
-
-                    bar.setAttribute(
-                        "aria-valuemax", sec
-                    );
-
-                    bar.setAttribute(
-                        "aria-valuenow", sec
-                    );
-
-                }
-
-
-                setAnim(COUNTDOWN);
-
-
-                var tick =
-                    setInterval(function () {
-
-                        remaining--;
-
-                        if (remaining <= 0) {
-
-                            clearInterval(tick);
-
-                            progress.style.animation =
-                                "none";
-
-                            bar.setAttribute(
-                                "aria-valuenow", "0"
-                            );
-
-                            timer.textContent =
-                                "...";
-
-                            window.location.href =
-                                AD_URL;
-
-                            return;
-                        }
-
-                        timer.textContent =
-                            remaining;
-
-                        bar.setAttribute(
-                            "aria-valuenow",
-                            remaining
-                        );
-
-                    }, 1000);
-
-            })();
-
-        } catch (e) {
-
-            document.getElementById("timer")
-                .textContent = "15";
-
-        }
+        })();
 
     </script>
 
