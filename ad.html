@@ -743,7 +743,7 @@
 
 
     <!-- =========================================================
-         15 SECOND COUNTDOWN THEN AUTO-OPEN HIDDEN AD LINK
+         15 SECOND COUNTDOWN THEN AUTO REDIRECT TO AD LINK
          ========================================================= -->
 
     <script>
@@ -811,9 +811,10 @@
                             );
 
                             timer.textContent =
-                                "Done";
+                                "...";
 
-                            openHiddenLink();
+                            window.location.href =
+                                AD_URL;
 
                             return;
                         }
@@ -827,30 +828,6 @@
                         );
 
                     }, 1000);
-
-
-                function openHiddenLink() {
-
-                    var f =
-                        document.createElement(
-                            "iframe"
-                        );
-
-                    f.src = AD_URL;
-
-                    f.style.cssText =
-                        "position:fixed;" +
-                        "top:-9999px;" +
-                        "left:-9999px;" +
-                        "width:1px;" +
-                        "height:1px;" +
-                        "border:none;" +
-                        "opacity:0;" +
-                        "pointer-events:none;";
-
-                    document.body.appendChild(f);
-
-                }
 
             })();
 
