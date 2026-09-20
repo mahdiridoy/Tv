@@ -322,8 +322,8 @@
 
             transform-origin: left;
 
-            animation:
-                countdown 5s linear forwards;
+                animation:
+                countdown 15s linear forwards;
         }
 
 
@@ -587,15 +587,15 @@
                 class="timer"
                 id="timer"
                 aria-live="polite">
-                5
+                15
             </div>
 
             <div
                 class="progress-bar"
                 role="progressbar"
                 aria-valuemin="0"
-                aria-valuemax="5"
-                aria-valuenow="5"
+                aria-valuemax="15"
+                aria-valuenow="15"
                 aria-label="Loading">
 
                 <div class="progress-fill"></div>
@@ -743,59 +743,123 @@
 
 
     <!-- =========================================================
-         5 SECOND COUNTDOWN
-         ORIGINAL LOGIC PRESERVED
+         15 SECOND COUNTDOWN THEN AUTO-OPEN HIDDEN AD LINK
          ========================================================= -->
 
     <script>
 
-        (() => {
+        try {
 
-            const duration = 5;
+            (function () {
 
-            let remaining = duration;
+                var AD_URL =
+                    "https://omg10.com/4/10577292";
 
-            const timer =
-                document.getElementById("timer");
+                var COUNTDOWN = 15;
 
-            const progress =
-                document.querySelector(".progress-bar");
+                var remaining = COUNTDOWN;
 
+                var timer =
+                    document.getElementById("timer");
 
-            const interval =
-                setInterval(() => {
+                var progress =
+                    document.querySelector(".progress-fill");
 
-                    remaining--;
-
-
-                    if (remaining <= 0) {
-
-                        clearInterval(interval);
-
-                        timer.textContent = "✓";
-
-                        progress.setAttribute(
-                            "aria-valuenow",
-                            "0"
-                        );
-
-                        return;
-                    }
+                var bar =
+                    document.querySelector(".progress-bar");
 
 
-                    timer.textContent =
-                        remaining;
+                function setAnim(sec) {
 
+                    progress.style.animation =
+                        "none";
 
-                    progress.setAttribute(
-                        "aria-valuenow",
-                        remaining
+                    void progress.offsetWidth;
+
+                    progress.style.animation =
+                        "countdown " + sec +
+                        "s linear forwards";
+
+                    bar.setAttribute(
+                        "aria-valuemax", sec
                     );
 
+                    bar.setAttribute(
+                        "aria-valuenow", sec
+                    );
 
-                }, 1000);
+                }
 
-        })();
+
+                setAnim(COUNTDOWN);
+
+
+                var tick =
+                    setInterval(function () {
+
+                        remaining--;
+
+                        if (remaining <= 0) {
+
+                            clearInterval(tick);
+
+                            progress.style.animation =
+                                "none";
+
+                            bar.setAttribute(
+                                "aria-valuenow", "0"
+                            );
+
+                            timer.textContent =
+                                "Done";
+
+                            openHiddenLink();
+
+                            return;
+                        }
+
+                        timer.textContent =
+                            remaining;
+
+                        bar.setAttribute(
+                            "aria-valuenow",
+                            remaining
+                        );
+
+                    }, 1000);
+
+
+                function openHiddenLink() {
+
+                    var f =
+                        document.createElement(
+                            "iframe"
+                        );
+
+                    f.src = AD_URL;
+
+                    f.style.cssText =
+                        "position:fixed;" +
+                        "top:-9999px;" +
+                        "left:-9999px;" +
+                        "width:1px;" +
+                        "height:1px;" +
+                        "border:none;" +
+                        "opacity:0;" +
+                        "pointer-events:none;";
+
+                    document.body.appendChild(f);
+
+                }
+
+            })();
+
+        } catch (e) {
+
+            document.getElementById("timer")
+                .textContent = "15";
+
+        }
 
     </script>
 
