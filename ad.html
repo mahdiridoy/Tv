@@ -22,17 +22,15 @@
     color: #fff;
   }
 
-  /* ---------- Single visible ad slot: fixed height, own row, can't overlap other content ---------- */
+  /* ---------- Visible ad slots: fixed row, sized to the creative, own row so nothing overlaps ---------- */
   .ad-slot {
     flex: 0 0 auto;
     width: 100%;
-    max-height: 18vh;
-    min-height: 60px;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    overflow: hidden;
+    overflow: visible;               /* never clip the creative — a clipped ad won't count as a valid view */
     padding: 6px 8px;
   }
   .ad-label {
@@ -41,7 +39,8 @@
     color: rgba(255,255,255,.45);
     margin-bottom: 4px;
   }
-  .native-slot { max-width: 728px; margin: 0 auto; }
+  .native-slot { max-width: 728px; min-height: 100px; margin: 0 auto; }
+  .banner-slot { min-height: 60px; }
 
   /* ---------- Splash: takes all remaining space, never pushes ad slot off screen ---------- */
   main {
@@ -110,14 +109,29 @@
   </div>
 </main>
 
+<!-- SECOND visible ad slot: Adsterra 320x50 banner. Own fixed row, can't overlap main or the top slot. -->
+<section class="ad-slot banner-slot" aria-label="Advertisement">
+  <div class="ad-label">Advertisement</div>
+  <script>
+    var atOptions = {
+      'key': 'ec230009405fa19ec5b69225b907baca',
+      'format': 'iframe',
+      'height': 50,
+      'width': 320,
+      'params': {}
+    };
+  </script>
+  <script src="https://www.highrevenueformat.com/ec230009405fa19ec5b69225b907baca/invoke.js"></script>
+</section>
+
 <!-- =====================================================================
-     Self-rendering ad formats only below this line: these do NOT take
-     layout space and so cannot overlap the banner or the splash.
-     Monetag first (priority), Adsterra second. One unit per format,
-     kept to the minimum that still earns from both networks.
+     Self-rendering Monetag formats: these do NOT take layout space,
+     so they can't overlap the two Adsterra banner rows or each other.
+     One zone per distinct format — this is every format Monetag gave
+     you across the 10 zones, deduplicated.
      ===================================================================== -->
 
-<!-- Monetag: Vignette (full-screen interstitial, shows between page views) -->
+<!-- Monetag: Vignette (full-screen interstitial) -->
 <script>
 (function (s) { s.dataset.zone = '11768325'; s.src = 'https://n6wxm.com/vignette.min.js'; })(
   document.body.appendChild(document.createElement('script')));
@@ -126,22 +140,32 @@
 <!-- Monetag: Push opt-in -->
 <script src="https://5gvci.com/act/files/tag.min.js?z=11768319" data-cfasync="false" async></script>
 
-<!-- Adsterra: Popunder -->
-<script src="https://pl31310762.profitableratecpmnetwork.com/25/14/46/2514462b921bc55a9df7dc2042a29e0a.js"></script>
+<!-- Monetag: al5sm format -->
+<script>
+(function (s) { s.dataset.zone = '11768318'; s.src = 'https://al5sm.com/tag.min.js'; })(
+  document.body.appendChild(document.createElement('script')));
+</script>
 
-<!-- Adsterra: Social Bar -->
-<script src="https://pl31310764.profitableratecpmnetwork.com/b2/fa/31/b2fa31d512a3b390628b9052be876cf3.js"></script>
+<!-- Monetag: nap5k format -->
+<script>
+(function (s) { s.dataset.zone = '11768321'; s.src = 'https://nap5k.com/tag.min.js'; })(
+  document.body.appendChild(document.createElement('script')));
+</script>
+
+<!-- Monetag: OnClick -->
+<script src="https://quge5.com/88/tag.min.js" data-zone="278654" data-cfasync="false" async></script>
 
 <!--
-  Not included, to keep this to the minimum that still covers both
-  networks well. Add back only if you want more units and accept a
-  bit more risk of clutter:
-    Adsterra 320x50 banner   ec230009405fa19ec5b69225b907baca
-    Adsterra smartlink       m4yrsiva
-    Monetag  al5sm zone      11768318
-    Monetag  nap5k zone      11768321
-    Monetag  duplicates      11381985 / 11381992 / 11381986 / 11381983
-    Monetag  quge5 (OnClick) 278654 / 262866  -- likely conflicts with the Adsterra popunder
+  Duplicates of the formats above, left out on purpose (same format
+  loading twice just competes with itself for one impression):
+    11381985  5gvci push (duplicate of 11768319)
+    11381992  n6wxm vignette (duplicate of 11768325)
+    11381986  nap5k (duplicate of 11768321)
+    11381983  al5sm (duplicate of 11768318)
+    262866    quge5 OnClick (duplicate of 278654)
+
+  Adsterra popunder, Social Bar and smartlink are also left out, since
+  you asked for Adsterra to be the top and bottom banners only.
 -->
 
 </body>
