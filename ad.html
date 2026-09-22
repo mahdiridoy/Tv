@@ -2,31 +2,38 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <title>Pulse Stream</title>
 
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
 
+  html, body {
+    height: 100%;
+    overflow: hidden;               /* no page scroll on any screen size */
+  }
+
   body {
-    min-height: 100vh;
     display: flex;
     flex-direction: column;
-    align-items: center;
     background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
     font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
     color: #fff;
   }
 
-  /* ---------- Ad slots: normal page flow, always visible, no scroll boxes ---------- */
+  /* ---------- Single visible ad slot: fixed height, own row, can't overlap other content ---------- */
   .ad-slot {
+    flex: 0 0 auto;
     width: 100%;
+    max-height: 18vh;
+    min-height: 60px;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: 8px;
+    overflow: hidden;
+    padding: 6px 8px;
   }
   .ad-label {
     font-size: 10px;
@@ -34,43 +41,36 @@
     color: rgba(255,255,255,.45);
     margin-bottom: 4px;
   }
-  .native-slot { max-width: 728px; min-height: 90px; }
-  .banner-slot { min-height: 60px; }
+  .native-slot { max-width: 728px; margin: 0 auto; }
 
-  /* ---------- Splash ---------- */
+  /* ---------- Splash: takes all remaining space, never pushes ad slot off screen ---------- */
   main {
-    flex: 1;
+    flex: 1 1 auto;
+    min-height: 0;                  /* lets flex child shrink instead of overflowing */
     width: 100%;
     display: flex;
     align-items: center;
     justify-content: center;
     text-align: center;
-    padding: 2rem 1rem;
+    padding: 1rem;
   }
   .brand {
-    font-size: clamp(1.4rem, 5vw, 2.8rem);
+    font-size: clamp(1.2rem, 5vw, 2.8rem);
     font-weight: 700;
     letter-spacing: 2px;
-    margin-bottom: 1.5rem;
+    margin-bottom: 1.2rem;
     text-shadow: 0 0 20px rgba(100,149,237,.6);
   }
   .brand span { color: #6495ed; }
   .updating {
-    font-size: clamp(1rem, 3vw, 1.6rem);
+    font-size: clamp(.9rem, 3vw, 1.6rem);
     color: #ccc;
-    margin-bottom: 2rem;
-  }
-  .timer {
-    font-size: clamp(3rem, 10vw, 6rem);
-    font-weight: 900;
-    line-height: 1;
-    color: #6495ed;
-    text-shadow: 0 0 30px rgba(100,149,237,.8);
+    margin-bottom: 1.5rem;
   }
   .progress-bar {
     width: min(80vw, 400px);
     height: 6px;
-    margin: 2rem auto 0;
+    margin: 1.5rem auto 0;
     background: rgba(255,255,255,.15);
     border-radius: 3px;
     overflow: hidden;
@@ -84,37 +84,13 @@
   }
   @keyframes countdown { from { transform: scaleX(1); } to { transform: scaleX(0); } }
 
-  .go-btn {
-    display: none;
-    margin: 1.5rem auto 0;
-    padding: 12px 28px;
-    border-radius: 8px;
-    background: #6495ed;
-    color: #fff;
-    font-weight: 700;
-    font-size: 1.05rem;
-    text-decoration: none;
-  }
-  .go-btn:focus-visible, .sponsored-link:focus-visible { outline: 3px solid #00bfff; outline-offset: 3px; }
-  .sponsored-link {
-    display: inline-block;
-    padding: 8px 18px;
-    border: 1px solid rgba(255,255,255,.25);
-    border-radius: 6px;
-    color: #fff;
-    font-size: 13px;
-    font-weight: 600;
-    text-decoration: none;
-    background: rgba(255,255,255,.08);
-  }
-
   @media (prefers-reduced-motion: reduce) { .progress-fill { animation: none; } }
 </style>
 </head>
 
 <body>
 
-<!-- TOP: Adsterra native banner (visible, above the fold) -->
+<!-- ONE visible ad slot: Adsterra native banner. Fixed row, own space, nothing can overlap it. -->
 <section class="ad-slot native-slot" aria-label="Advertisement">
   <div class="ad-label">Advertisement</div>
   <script async data-cfasync="false"
@@ -122,7 +98,7 @@
   <div id="container-418fbeadf21f81a85c0a7531821ef94d"></div>
 </section>
 
-<!-- CENTER: splash -->
+<!-- CENTER: splash, fills all remaining height on any screen size -->
 <main>
   <div>
     <div class="brand">Presented By <span>Pulse Stream</span></div>
@@ -134,63 +110,38 @@
   </div>
 </main>
 
-<!-- BOTTOM: Adsterra 320x50 banner (visible, above the fold on mobile) -->
-<section class="ad-slot banner-slot" aria-label="Advertisement">
-  <div class="ad-label">Advertisement</div>
-  <script>
-    var atOptions = {
-      'key': 'ec230009405fa19ec5b69225b907baca',
-      'format': 'iframe',
-      'height': 50,
-      'width': 320,
-      'params': {}
-    };
-  </script>
-  <script src="https://www.highrevenueformat.com/ec230009405fa19ec5b69225b907baca/invoke.js"></script>
-</section>
-
 <!-- =====================================================================
-     AD SCRIPTS AT END OF BODY so the page renders first.
-     One unit per format. Zones removed are commented out at the bottom.
+     Self-rendering ad formats only below this line: these do NOT take
+     layout space and so cannot overlap the banner or the splash.
+     Monetag first (priority), Adsterra second. One unit per format,
+     kept to the minimum that still earns from both networks.
      ===================================================================== -->
 
-<!-- Adsterra Popunder (one popunder only) -->
-<script src="https://pl31310762.profitableratecpmnetwork.com/25/14/46/2514462b921bc55a9df7dc2042a29e0a.js"></script>
-
-<!-- Adsterra Social Bar (renders itself, needs no container) -->
-<script src="https://pl31310764.profitableratecpmnetwork.com/b2/fa/31/b2fa31d512a3b390628b9052be876cf3.js"></script>
-
-<!-- Monetag: Vignette (interstitial) -->
+<!-- Monetag: Vignette (full-screen interstitial, shows between page views) -->
 <script>
 (function (s) { s.dataset.zone = '11768325'; s.src = 'https://n6wxm.com/vignette.min.js'; })(
   document.body.appendChild(document.createElement('script')));
 </script>
 
-<!-- Monetag: Push notifications -->
+<!-- Monetag: Push opt-in -->
 <script src="https://5gvci.com/act/files/tag.min.js?z=11768319" data-cfasync="false" async></script>
 
-<!-- Monetag: tag.min.js zone (al5sm) -->
-<script>
-(function (s) { s.dataset.zone = '11768318'; s.src = 'https://al5sm.com/tag.min.js'; })(
-  document.body.appendChild(document.createElement('script')));
-</script>
+<!-- Adsterra: Popunder -->
+<script src="https://pl31310762.profitableratecpmnetwork.com/25/14/46/2514462b921bc55a9df7dc2042a29e0a.js"></script>
 
-<!-- Monetag: tag.min.js zone (nap5k) -->
-<script>
-(function (s) { s.dataset.zone = '11768321'; s.src = 'https://nap5k.com/tag.min.js'; })(
-  document.body.appendChild(document.createElement('script')));
-</script>
+<!-- Adsterra: Social Bar -->
+<script src="https://pl31310764.profitableratecpmnetwork.com/b2/fa/31/b2fa31d512a3b390628b9052be876cf3.js"></script>
 
 <!--
-  REMOVED DUPLICATES (same script domain / format already loaded above).
-  Re-enable one at a time only if the Monetag dashboard shows it is a
-  different format from the ones kept:
-    11381985  5gvci push (duplicate)
-    11381992  n6wxm vignette (duplicate)
-    11381986  nap5k (duplicate)
-    11381983  al5sm (duplicate)
-    278654    quge5 (likely OnClick, conflicts with the Adsterra popunder)
-    262866    quge5 (duplicate)
+  Not included, to keep this to the minimum that still covers both
+  networks well. Add back only if you want more units and accept a
+  bit more risk of clutter:
+    Adsterra 320x50 banner   ec230009405fa19ec5b69225b907baca
+    Adsterra smartlink       m4yrsiva
+    Monetag  al5sm zone      11768318
+    Monetag  nap5k zone      11768321
+    Monetag  duplicates      11381985 / 11381992 / 11381986 / 11381983
+    Monetag  quge5 (OnClick) 278654 / 262866  -- likely conflicts with the Adsterra popunder
 -->
 
 </body>
