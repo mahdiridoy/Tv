@@ -16,3 +16,9 @@ https://tv9.workerbot-tv9.workers.dev/toffee.m3u
 https://go.skym3u.dev/ni7u.m3u.m3u?t=4023&s=8e7
 https://m3u.devm3u.top/?u=admin&s=5&p=4545&f=.m3u8
 https://s.id/tv-network
+https://go.skym3u.dev/rwa5.m3u.m3u?t=2144&s=e32
+https://go.skym3u.dev/epzs.m3u.m3u?t=2144&s=068
+https://go.skym3u.dev/jy8b.m3u.m3u?t=2144&s=367
+https://go.skym3u.dev/sa36.m3u.m3u?t=2144&s=712
+https://go.skym3u.dev/vh7f.m3u.m3u?t=2144&s=bc0
+https://go.skym3u.dev/ah9i.m3u.m3u?t=2144&s=c75
