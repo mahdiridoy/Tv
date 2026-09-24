@@ -22,3 +22,4 @@ https://go.skym3u.dev/jy8b.m3u.m3u?t=2144&s=367
 https://go.skym3u.dev/sa36.m3u.m3u?t=2144&s=712
 https://go.skym3u.dev/vh7f.m3u.m3u?t=2144&s=bc0
 https://go.skym3u.dev/ah9i.m3u.m3u?t=2144&s=c75
+https://surl.li/zsoric
