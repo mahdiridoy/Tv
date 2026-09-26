@@ -20,6 +20,8 @@
 # Channels matching no keyword keep getting numbers after the whole list.
 CHANNEL_ORDER = [
     "BTV",
+    "T Sports",
+    "Tsports",
     "ATN",
     "Channel i",
     "Jamuna",
