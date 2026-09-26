@@ -1,4 +1,8 @@
 #EXTM3U
+#EXTINF:-1 tvg-id="1" tvg-name="T Sports" tvg-logo="https://tscdn.tsports.com/uploads/settings/logo.png",T Sports
+https://tinyurl.com/5n7dw7wj
+#EXTINF:-1 tvg-id="2" tvg-name="T Sports HD" tvg-logo="https://tscdn.tsports.com/uploads/settings/logo.png",T Sports HD
+https://tinyurl.com/f6jc7d25
 #EXTINF:-1 tvg-id="7c5fee98-96e2-43df-95f4-ae8ded8e9efe" tvg-name="BTV CTG" tvg-logo="https://s3.aynaott.com/storage/00da8a07fb26b2fb79359ee535e4c7bc" tvg-chno="1",BTV CTG
 https://tvsen6.aynaott.com/TjGR1GcxKetHNVcMVxbq/index.m3u8?e=1784102576&u=ee5437a7-c16b-4700-b317-a41b77d5cba9&token=901c0ca2f1ba54041a543dce43641c12
 #EXTINF:-1 tvg-logo="https://tstatic.akash-go.com/cms-ui/images/custom-content/1784629845642.png" tvg-chno="1",Btv
