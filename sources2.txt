@@ -1,4 +1,5 @@
 https://mahdiridoy.github.io/codecloudebd/playlist/fifa_tv.m3u
+https://github.com/mahdiridoy/Tv/releases/download/latest-playlist/my-iptv-channels_filtered.m3u8
 https://github.com/abusaeeidx/Mrgify-BDIX-IPTV/raw/main/playlist.m3u
 https://raw.githubusercontent.com/ahan443/FAST-IPTV/refs/heads/main/u5zm_m3u.m3u8
 https://gist.githubusercontent.com/rajufreedom71/7d9a23be3838ef09d7d624d8f305bad0/raw/73928c6d764a318d5b6ed0d185ce8dc5c6010fb8/World%2520Cup.m3u
