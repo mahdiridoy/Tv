@@ -109,7 +109,7 @@
     <!-- Responsive YouTube embed: attempts unmuted autoplay, sound guaranteed on first interaction -->
     <div class="video-wrap">
       <div id="ytplayer"></div>
-      <div class="sound-hint" id="soundHint">&#128266; Tap for sound</div>
+      <div class="sound-hint" id="soundHint" style="display:none">&#128266; Tap for sound</div>
     </div>
 
     <div class="progress-bar" role="progressbar" aria-label="Loading"
@@ -123,9 +123,51 @@
 <script src="https://www.youtube.com/iframe_api"></script>
 <script>
 (function () {
+  var RETRY_CAP = 20; // ~6s of aggressive unMute/play attempts at 300ms
+
   function hideHint() {
     var h = document.getElementById('soundHint');
     if (h) { h.style.display = 'none'; }
+  }
+
+  function showHint() {
+    var h = document.getElementById('soundHint');
+    if (h) { h.style.display = ''; }
+  }
+
+  function stopRetry() {
+    if (window.__soundRetry) {
+      clearInterval(window.__soundRetry);
+      window.__soundRetry = null;
+    }
+  }
+
+  function markSoundActive() {
+    window.__soundOn = true;
+    hideHint();
+    stopRetry();
+  }
+
+  // Aggressive loop: keeps unMuting/playing until the browser lets audio through.
+  function startSoundRetry() {
+    stopRetry();
+    var attempts = 0;
+    window.__soundRetry = setInterval(function () {
+      attempts++;
+      var p = window.__ytPlayer;
+      if (!p || !p.isMuted) { stopRetry(); return; }
+      try {
+        if (p.isMuted()) { p.unMute(); }
+        var st = p.getPlayerState ? p.getPlayerState() : -1;
+        if (st !== 1 && st !== 3) { p.playVideo(); }
+        if (!p.isMuted() && st === 1) { markSoundActive(); return; }
+      } catch (err) {}
+      if (attempts >= RETRY_CAP) {
+        stopRetry();
+        var q = window.__ytPlayer;
+        if (q && q.isMuted && q.isMuted()) { showHint(); } else { hideHint(); }
+      }
+    }, 300);
   }
 
   function installUnmuteOnInteraction(player) {
@@ -137,6 +179,7 @@
         if (player.isMuted && player.isMuted()) player.unMute();
         if (player.playVideo) player.playVideo();
       } catch (e) {}
+      stopRetry();
       hideHint();
     }
     document.addEventListener('pointerdown', handler);
@@ -145,14 +188,22 @@
   }
 
   window.onYouTubeIframeAPIReady = function () {
-    new YT.Player('ytplayer', {
+    window.__ytPlayer = new YT.Player('ytplayer', {
       videoId: 'UIG1vCboNyI',
       playerVars: { autoplay: 1, mute: 0, playsinline: 1, rel: 0 },
       events: {
         onReady: function (e) {
+          window.__ytPlayer = e.target;
+          hideHint(); // never flash the hint during the retry window
           try { e.target.playVideo(); } catch (err) {}
-          if (!(e.target.isMuted && e.target.isMuted())) { hideHint(); }
+          startSoundRetry();
           installUnmuteOnInteraction(e.target);
+        },
+        onStateChange: function (e) {
+          try {
+            var p = window.__ytPlayer || e.target;
+            if (e.data === 1 && p && p.isMuted && !p.isMuted()) { markSoundActive(); }
+          } catch (err) {}
         }
       }
     });
