@@ -22,30 +22,10 @@
     color: #fff;
   }
 
-  /* ---------- Visible ad slots: fixed row, sized to the creative, own row so nothing overlaps ---------- */
-  .ad-slot {
-    flex: 0 0 auto;
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    overflow: visible;               /* never clip the creative — a clipped ad won't count as a valid view */
-    padding: 6px 8px;
-  }
-  .ad-label {
-    font-size: 10px;
-    letter-spacing: 1px;
-    color: rgba(255,255,255,.45);
-    margin-bottom: 4px;
-  }
-  .native-slot { max-width: 728px; min-height: 100px; margin: 0 auto; }
-  .banner-slot { min-height: 60px; }
-
-  /* ---------- Splash: takes all remaining space, never pushes ad slot off screen ---------- */
+  /* ---------- Splash: takes all remaining space ---------- */
   main {
     flex: 1 1 auto;
-    min-height: 0;                  /* lets flex child shrink instead of overflowing */
+    min-height: 0;
     width: 100%;
     display: flex;
     align-items: center;
@@ -53,23 +33,43 @@
     text-align: center;
     padding: 1rem;
   }
+  .splash { width: 100%; }
+
   .brand {
     font-size: clamp(1.2rem, 5vw, 2.8rem);
     font-weight: 700;
     letter-spacing: 2px;
-    margin-bottom: 1.2rem;
+    margin-bottom: .9rem;
     text-shadow: 0 0 20px rgba(100,149,237,.6);
   }
   .brand span { color: #6495ed; }
   .updating {
     font-size: clamp(.9rem, 3vw, 1.6rem);
     color: #ccc;
-    margin-bottom: 1.5rem;
+    margin-bottom: 1rem;
   }
+
+  /* ---------- Responsive autoplay video (16:9, fits any screen) ---------- */
+  .video-wrap {
+    /* width respects all three limits: viewport width, layout cap, and the
+       viewport-height cap converted to a width (keeps 16:9 on short screens) */
+    width: min(92vw, 900px, calc(56vh * 16 / 9));
+    max-width: 100%;
+    max-height: min(56vh, calc(92vw * 9 / 16));
+    aspect-ratio: 16 / 9;
+    margin: 0 auto;
+  }
+  .video-wrap iframe {
+    display: block;
+    width: 100%;
+    height: 100%;
+    border: 0;
+  }
+
   .progress-bar {
     width: min(80vw, 400px);
     height: 6px;
-    margin: 1.5rem auto 0;
+    margin: 1rem auto 0;
     background: rgba(255,255,255,.15);
     border-radius: 3px;
     overflow: hidden;
@@ -83,25 +83,38 @@
   }
   @keyframes countdown { from { transform: scaleX(1); } to { transform: scaleX(0); } }
 
+  /* compact stack on short screens (e.g. landscape phones) — nothing clips */
+  @media (max-height: 620px) {
+    main { padding: .6rem; }
+    .brand { font-size: clamp(1.1rem, 4vw, 1.8rem); margin-bottom: .6rem; }
+    .updating { font-size: clamp(.8rem, 2.5vw, 1.1rem); margin-bottom: .7rem; }
+    .progress-bar { margin-top: .7rem; }
+    .video-wrap { width: min(92vw, 900px, calc(52vh * 16 / 9)); max-height: min(52vh, calc(92vw * 9 / 16)); }
+  }
+
   @media (prefers-reduced-motion: reduce) { .progress-fill { animation: none; } }
 </style>
 </head>
 
 <body>
 
-<!-- ONE visible ad slot: Adsterra native banner. Fixed row, own space, nothing can overlap it. -->
-<section class="ad-slot native-slot" aria-label="Advertisement">
-  <div class="ad-label">Advertisement</div>
-  <script async data-cfasync="false"
-    src="https://pl31310765.profitableratecpmnetwork.com/418fbeadf21f81a85c0a7531821ef94d/invoke.js"></script>
-  <div id="container-418fbeadf21f81a85c0a7531821ef94d"></div>
-</section>
-
 <!-- CENTER: splash, fills all remaining height on any screen size -->
 <main>
-  <div>
+  <div class="splash">
     <div class="brand">Presented By <span>Pulse Stream</span></div>
     <div class="updating">Preparing your stream, please wait...</div>
+
+    <!-- Responsive YouTube embed: autoplays muted, scales to any screen -->
+    <div class="video-wrap">
+      <iframe
+              src="https://www.youtube.com/embed/UIG1vCboNyI?si=5mQ-RxteN8REcKhY&autoplay=1&mute=1"
+              title="YouTube video player"
+              frameborder="0"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+              referrerpolicy="strict-origin-when-cross-origin"
+              allowfullscreen></iframe>
+    </div>
+
     <div class="progress-bar" role="progressbar" aria-label="Loading"
          aria-valuemin="0" aria-valuemax="15" aria-valuenow="15">
       <div class="progress-fill"></div>
@@ -109,64 +122,8 @@
   </div>
 </main>
 
-<!-- SECOND visible ad slot: Adsterra 320x50 banner. Own fixed row, can't overlap main or the top slot. -->
-<section class="ad-slot banner-slot" aria-label="Advertisement">
-  <div class="ad-label">Advertisement</div>
-  <script>
-    var atOptions = {
-      'key': 'ec230009405fa19ec5b69225b907baca',
-      'format': 'iframe',
-      'height': 50,
-      'width': 320,
-      'params': {}
-    };
-  </script>
-  <script src="https://www.highrevenueformat.com/ec230009405fa19ec5b69225b907baca/invoke.js"></script>
-</section>
-
-<!-- =====================================================================
-     Self-rendering Monetag formats: these do NOT take layout space,
-     so they can't overlap the two Adsterra banner rows or each other.
-     One zone per distinct format — this is every format Monetag gave
-     you across the 10 zones, deduplicated.
-     ===================================================================== -->
-
-<!-- Monetag: Vignette (full-screen interstitial) -->
-<script>
-(function (s) { s.dataset.zone = '11768325'; s.src = 'https://n6wxm.com/vignette.min.js'; })(
-  document.body.appendChild(document.createElement('script')));
-</script>
-
-<!-- Monetag: Push opt-in -->
-<script src="https://5gvci.com/act/files/tag.min.js?z=11768319" data-cfasync="false" async></script>
-
-<!-- Monetag: al5sm format -->
-<script>
-(function (s) { s.dataset.zone = '11768318'; s.src = 'https://al5sm.com/tag.min.js'; })(
-  document.body.appendChild(document.createElement('script')));
-</script>
-
-<!-- Monetag: nap5k format -->
-<script>
-(function (s) { s.dataset.zone = '11768321'; s.src = 'https://nap5k.com/tag.min.js'; })(
-  document.body.appendChild(document.createElement('script')));
-</script>
-
-<!-- Monetag: OnClick -->
-<script src="https://quge5.com/88/tag.min.js" data-zone="278654" data-cfasync="false" async></script>
-
-<!--
-  Duplicates of the formats above, left out on purpose (same format
-  loading twice just competes with itself for one impression):
-    11381985  5gvci push (duplicate of 11768319)
-    11381992  n6wxm vignette (duplicate of 11768325)
-    11381986  nap5k (duplicate of 11768321)
-    11381983  al5sm (duplicate of 11768318)
-    262866    quge5 OnClick (duplicate of 278654)
-
-  Adsterra popunder, Social Bar and smartlink are also left out, since
-  you asked for Adsterra to be the top and bottom banners only.
--->
+<!-- Monetag OnClick ad (zone 289749) -->
+<script src="https://quge5.com/88/tag.min.js" data-zone="289749" async data-cfasync="false"></script>
 
 </body>
 </html>
