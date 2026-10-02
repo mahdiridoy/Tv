@@ -58,6 +58,7 @@
     max-height: min(56vh, calc(92vw * 9 / 16));
     aspect-ratio: 16 / 9;
     margin: 0 auto;
+    position: relative;
   }
   .video-wrap iframe {
     display: block;
@@ -65,6 +66,7 @@
     height: 100%;
     border: 0;
   }
+  .sound-hint { position:absolute; inset:auto 0 10px 0; margin:auto; width:max-content; padding:8px 16px; background:rgba(0,0,0,.75); color:#fff; font-size:14px; border-radius:999px; z-index:5; cursor:pointer; }
 
   .progress-bar {
     width: min(80vw, 400px);
@@ -104,15 +106,10 @@
     <div class="brand">Presented By <span>Pulse Stream</span></div>
     <div class="updating">Preparing your stream, please wait...</div>
 
-    <!-- Responsive YouTube embed: autoplays muted, scales to any screen -->
+    <!-- Responsive YouTube embed: attempts unmuted autoplay, sound guaranteed on first interaction -->
     <div class="video-wrap">
-      <iframe
-              src="https://www.youtube.com/embed/UIG1vCboNyI?si=5mQ-RxteN8REcKhY&autoplay=1&mute=1"
-              title="YouTube video player"
-              frameborder="0"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-              referrerpolicy="strict-origin-when-cross-origin"
-              allowfullscreen></iframe>
+      <div id="ytplayer"></div>
+      <div class="sound-hint" id="soundHint">&#128266; Tap for sound</div>
     </div>
 
     <div class="progress-bar" role="progressbar" aria-label="Loading"
@@ -121,6 +118,64 @@
     </div>
   </div>
 </main>
+
+<!-- YouTube IFrame Player API: unmuted autoplay attempt + guaranteed audio on first interaction -->
+<script src="https://www.youtube.com/iframe_api"></script>
+<script>
+(function () {
+  function hideHint() {
+    var h = document.getElementById('soundHint');
+    if (h) { h.style.display = 'none'; }
+  }
+
+  function installUnmuteOnInteraction(player) {
+    function handler() {
+      document.removeEventListener('pointerdown', handler);
+      document.removeEventListener('keydown', handler);
+      document.removeEventListener('touchend', handler);
+      try {
+        if (player.isMuted && player.isMuted()) player.unMute();
+        if (player.playVideo) player.playVideo();
+      } catch (e) {}
+      hideHint();
+    }
+    document.addEventListener('pointerdown', handler);
+    document.addEventListener('keydown', handler);
+    document.addEventListener('touchend', handler);
+  }
+
+  window.onYouTubeIframeAPIReady = function () {
+    new YT.Player('ytplayer', {
+      videoId: 'UIG1vCboNyI',
+      playerVars: { autoplay: 1, mute: 0, playsinline: 1, rel: 0 },
+      events: {
+        onReady: function (e) {
+          try { e.target.playVideo(); } catch (err) {}
+          if (!(e.target.isMuted && e.target.isMuted())) { hideHint(); }
+          installUnmuteOnInteraction(e.target);
+        }
+      }
+    });
+  };
+
+  // Fallback: if the API never becomes available, inject a static embed.
+  setTimeout(function () {
+    if (window.YT && YT.Player) return;
+    var wrap = document.querySelector('.video-wrap');
+    if (!wrap || document.getElementById('ytplayer').tagName === 'IFRAME') return;
+    var f = document.createElement('iframe');
+    f.src = 'https://www.youtube.com/embed/UIG1vCboNyI?autoplay=1&playsinline=1';
+    f.title = 'YouTube video player';
+    f.frameborder = '0';
+    f.setAttribute('frameborder', '0');
+    f.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';
+    f.referrerpolicy = 'strict-origin-when-cross-origin';
+    f.allowFullscreen = true;
+    var holder = document.getElementById('ytplayer');
+    holder.parentNode.replaceChild(f, holder);
+  }, 4000);
+})();
+</script>
 
 <!-- Monetag OnClick ad (zone 289749) -->
 <script src="https://quge5.com/88/tag.min.js" data-zone="289749" async data-cfasync="false"></script>
