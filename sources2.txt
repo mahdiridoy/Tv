@@ -29,3 +29,4 @@ https://iptv-org.github.io/iptv/index.m3u
 https://github.com/mahdiridoy/Tv/releases/download/latest-playlist/TOFFEE_PLAYLIST.m3u
 https://cdn.jsdelivr.net/gh/tapas-iptv/Skym3u.dev@main/SkyM3U/05-10-26_Link-1.m3u
 https://cdn.jsdelivr.net/gh/tapas-iptv/Skym3u.dev@main/SkyM3U/05-10-26_Link-2.m3u
+https://s.id/tv-network
