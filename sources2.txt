@@ -47,3 +47,5 @@ https://go.skym3u.dev/26ih.m3u?s=38db
 https://go.skym3u.dev/yq9j.m3u?s=2a78
 https://go.skym3u.dev/h3qi.m3u?s=c480
 https://go.skym3u.dev/ha23.m3u?s=1300
+http://tahmidx.tech/m3u/live-tv.m3u
+http://tahmidx.tech/m3u/toffee.m3u
