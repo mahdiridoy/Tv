@@ -34,6 +34,17 @@
   }
   .splash { width: 100%; }
 
+  .banner-ad {
+    flex: 0 0 auto;
+    width: 100%;
+    min-height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6px 0 calc(6px + env(safe-area-inset-bottom, 0px));
+    overflow: hidden;
+  }
+
   .brand {
     font-size: clamp(1.2rem, 5vw, 2.8rem);
     font-weight: 700;
@@ -82,6 +93,20 @@
     <a class="go-link" id="goLink" href="https://uplcm.com/4/10577292" target="_self" rel="noopener">Click here to continue</a>
   </div>
 </main>
+
+<!-- Bottom banner ad (320x50) -->
+<div class="banner-ad">
+  <script>
+    atOptions = {
+      'key' : 'ec230009405fa19ec5b69225b907baca',
+      'format' : 'iframe',
+      'height' : 50,
+      'width' : 320,
+      'params' : {}
+    };
+  </script>
+  <script src="https://www.highrevenueformat.com/ec230009405fa19ec5b69225b907baca/invoke.js"></script>
+</div>
 
 <script>
 (function () {
