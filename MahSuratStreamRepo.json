@@ -1,3 +1,227 @@
+[
+  {
+    "name": "CloudStream Providers Repository",
+    "description": "CloudStream extension Repository",
+    "manifestVersion": 1,
+    "pluginLists": [
+      "https://raw.githubusercontent.com/recloudstream/extensions/master/plugins.json"
+    ]
+  },
+  {
+    "name": "Mega Repository",
+    "description": "CloudStream extension Repository",
+    "manifestVersion": 1,
+    "pluginLists": [
+      "https://raw.githubusercontent.com/self-similarity/MegaRepo/builds/plugins.json"
+    ]
+  },
+  {
+    "name": "Phisher Repo",
+    "description": "CloudStream extension Repository",
+    "manifestVersion": 1,
+    "pluginLists": [
+      "https://raw.githubusercontent.com/phisher98/cloudstream-extensions-phisher/refs/heads/builds/plugins.json"
+    ]
+  },
+  {
+    "name": "CSX / Megix Repo",
+    "description": "CloudStream extension Repository",
+    "manifestVersion": 1,
+    "pluginLists": [
+      "https://raw.githubusercontent.com/SaurabhKaperwan/CSX/builds/plugins.json"
+    ]
+  },
+  {
+    "name": "3rabi عربي",
+    "description": "CloudStream extension Repository",
+    "manifestVersion": 1,
+    "pluginLists": [
+      "https://raw.githubusercontent.com/Abodabodd/re-3arabi/refs/heads/main/plugins.json"
+    ]
+  },
+  {
+    "name": "Turkish Providers Repository",
+    "description": "CloudStream extension Repository",
+    "manifestVersion": 1,
+    "pluginLists": [
+      "https://raw.githubusercontent.com/keyiflerolsun/Kekik-cloudstream/master/plugins.json"
+    ]
+  },
+  {
+    "name": "IndoStream Repo",
+    "description": "CloudStream extension Repository",
+    "manifestVersion": 1,
+    "pluginLists": [
+      "https://raw.githubusercontent.com/TeKuma25/IndoStream/builds/plugins.json"
+    ]
+  },
+  {
+    "name": "doGior’s Had Enough",
+    "description": "CloudStream extension Repository",
+    "manifestVersion": 1,
+    "pluginLists": [
+      "https://raw.githubusercontent.com/doGior/doGiorsHadEnough/refs/heads/builds/plugins.json"
+    ]
+  },
+  {
+    "name": "CakeTwix",
+    "description": "CloudStream extension Repository",
+    "manifestVersion": 1,
+    "pluginLists": [
+      "https://codeberg.org/CakesTwix/cloudstream-extensions-uk/raw/branch/master/plugins.json"
+    ]
+  },
+  {
+    "name": "Italian Providers Repository",
+    "description": "CloudStream extension Repository",
+    "manifestVersion": 1,
+    "pluginLists": [
+      "https://raw.githubusercontent.com/Gian-Fr/ItalianProvider/builds/plugins.json"
+    ]
+  },
+  {
+    "name": "Redowan’s BDIX",
+    "description": "CloudStream extension Repository",
+    "manifestVersion": 1,
+    "pluginLists": [
+      "https://raw.githubusercontent.com/redowan99/Redowan-CloudStream/master/plugins.json"
+    ]
+  },
+  {
+    "name": "Reflex Repo",
+    "description": "CloudStream extension Repository",
+    "manifestVersion": 1,
+    "pluginLists": [
+      "https://raw.githubusercontent.com/Reflex755/ReflexRepo/refs/heads/builds/plugins.json"
+    ]
+  },
+  {
+    "name": "Turkish Providers Repo (@kraptor123)",
+    "description": "CloudStream extension Repository",
+    "manifestVersion": 1,
+    "pluginLists": [
+      "https://raw.githubusercontent.com/Kraptor123/cs-kraptor/refs/heads/master/plugins.json"
+    ]
+  },
+  {
+    "name": "Luna712",
+    "description": "CloudStream extension Repository",
+    "manifestVersion": 1,
+    "pluginLists": [
+      "https://raw.githubusercontent.com/Luna712/Luna712-CloudStream-Extensions/28885d17ceb7f24782b732b6056085c14c1fd027/plugins.json"
+    ]
+  },
+  {
+    "name": "CuxPlug",
+    "description": "CloudStream extension Repository",
+    "manifestVersion": 1,
+    "pluginLists": [
+      "https://raw.githubusercontent.com/ycngmn/CuxPlug/refs/heads/main/plugins.json"
+    ]
+  },
+  {
+    "name": "Saimuel Repo",
+    "description": "CloudStream extension Repository",
+    "manifestVersion": 1,
+    "pluginLists": [
+      "https://raw.githubusercontent.com/saimuelbr/saimuelrepo/refs/heads/main/builds/plugins.json"
+    ]
+  },
+  {
+    "name": "sarapcanagii / Pitipiti",
+    "description": "CloudStream extension Repository",
+    "manifestVersion": 1,
+    "pluginLists": [
+      "https://raw.githubusercontent.com/sarapcanagii/Pitipitii/master/plugins.json"
+    ]
+  },
+  {
+    "name": "lawlietrepo",
+    "description": "CloudStream extension Repository",
+    "manifestVersion": 1,
+    "pluginLists": [
+      "https://raw.githubusercontent.com/lawlietbr/lietrepo/refs/heads/main/builds/plugins.json"
+    ]
+  },
+  {
+    "name": "King",
+    "description": "CloudStream extension Repository",
+    "manifestVersion": 1,
+    "pluginLists": [
+      "https://pastebin.com/raw/Cd2g2tfz"
+    ]
+  },
+  {
+    "name": "Arabico",
+    "description": "CloudStream extension Repository",
+    "manifestVersion": 1,
+    "pluginLists": [
+      "https://raw.githubusercontent.com/aymanbest/Arabico/main/plugins.json"
+    ]
+  },
+  {
+    "name": "Aniyomi Compat",
+    "description": "CloudStream extension Repository",
+    "manifestVersion": 1,
+    "pluginLists": [
+      "https://raw.githubusercontent.com/CranberrySoup/AniyomiCompatExtension/master/plugins.json"
+    ]
+  },
+  {
+    "name": "CloudX Repository",
+    "description": "CloudStream extension Repository",
+    "manifestVersion": 1,
+    "pluginLists": [
+      "https://raw.githubusercontent.com/Asm0d3usX/CloudX/builds/plugins.json"
+    ]
+  },
+  {
+    "name": "DieGon Repository",
+    "description": "CloudStream extension Repository",
+    "manifestVersion": 1,
+    "pluginLists": [
+      "https://pastebin.com/raw/qndZtL6D"
+    ]
+  },
+  {
+    "name": "cs-karma",
+    "description": "CloudStream extension Repository",
+    "manifestVersion": 1,
+    "pluginLists": [
+      "https://raw.githubusercontent.com/Kraptor123/cs-Karma/refs/heads/master/plugins.json"
+    ]
+  },
+  {
+    "name": "Netmirror Repo",
+    "description": "CloudStream extension Repository",
+    "manifestVersion": 1,
+    "pluginLists": [
+      "https://raw.githubusercontent.com/Sushan64/NetMirror-Extension/refs/heads/builds/plugins.json"
+    ]
+  },
+  {
+    "name": "German Providers Repository",
+    "description": "CloudStream extension Repository",
+    "manifestVersion": 1,
+    "pluginLists": [
+      "https://raw.githubusercontent.com/Bnyro/GermanProviders/refs/heads/master/plugins.json"
+    ]
+  },
+  {
+    "name": "zzikozz / French Repo",
+    "description": "CloudStream extension Repository",
+    "manifestVersion": 1,
+    "pluginLists": [
+      "https://raw.githubusercontent.com/zzikozz/frenchCS/refs/heads/main/plugins.json"
+    ]
+  },
+  {
+    "name": "GramFlix",
+    "description": "CloudStream extension Repository",
+    "manifestVersion": 1,
+    "pluginLists": [
+      "https://raw.githubusercontent.com/tOntOnbOuLii/GramFlix/main/plugins.json"
+    ]
   },
   {
     "name": "Cinephile",
