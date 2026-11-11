@@ -1,96 +1,122 @@
-{
-  "name": "CloudStream Repository Collection",
-  "source": "https://cloudstream-apk.com/cloudstream-repositories-extensions/",
-  "generated": "2026-11-11",
-  "note": "Collected repository endpoints from the source page. Availability and safety have not been independently verified. Some entries may be duplicates, outdated, or no longer maintained.",
-  "repositories": [
-    {
-      "name": "CloudStream Providers Repository",
-      "url": "https://raw.githubusercontent.com/recloudstream/extensions/master/repo.json",
-      "shortcode": "cspr",
-      "status": "maintained"
-    },
-    {
-      "name": "Mega Repository",
-      "url": "https://raw.githubusercontent.com/self-similarity/MegaRepo/builds/repo.json",
-      "shortcode": "megarepo",
-      "status": "maintained"
-    },
-    {
-      "name": "Phisher Repo",
-      "url": "https://raw.githubusercontent.com/phisher98/cloudstream-extensions-phisher/refs/heads/builds/repo.json",
-      "shortcode": "phisherrepo",
-      "status": "maintained"
-    },
-    {
-      "name": "CSX / Megix Repo",
-      "url": "https://raw.githubusercontent.com/SaurabhKaperwan/CSX/builds/CS.json",
-      "shortcode": "csx",
-      "status": "maintained"
-    },
-    {
-      "name": "3rabi عربي",
-      "url": "https://raw.githubusercontent.com/Abodabodd/re-3arabi/refs/heads/main/repo",
-      "shortcode": "arb",
-      "status": "maintained"
-    },
-    {
-      "name": "Turkish Providers Repository",
-      "url": "https://raw.githubusercontent.com/keyiflerolsun/Kekik-cloudstream/master/repo.json",
-      "shortcode": "KekikAkademi",
-      "status": "maintained"
-    },
-    {
-      "name": "IndoStream Repo",
-      "url": "https://raw.githubusercontent.com/TeKuma25/IndoStream/builds/repo.json",
-      "shortcode": "indos",
-      "status": "maintained"
-    },
-    {
-      "name": "doGior’s Had Enough",
-      "url": "https://raw.githubusercontent.com/doGior/doGiorsHadEnough/refs/heads/builds/repo.json",
-      "shortcode": "gior",
-      "status": "maintained"
-    },
-    {
-      "name": "CakeTwix",
-      "url": "https://codeberg.org/CakesTwix/cloudstream-extensions-uk/raw/branch/master/repo.json",
-      "shortcode": "cakes",
-      "status": "maintained"
-    },
-    {
-      "name": "Italian Providers Repository",
-      "url": "https://raw.githubusercontent.com/Gian-Fr/ItalianProvider/builds/repo.json",
-      "shortcode": "ipr",
-      "status": "maintained"
-    },
-    {
-      "name": "Redowan’s BDIX",
-      "url": "https://raw.githubusercontent.com/redowan99/Redowan-CloudStream/master/repo.json",
-      "shortcode": "redowan",
-      "status": "maintained"
-    },
-    {
-      "name": "Reflex Repo",
-      "url": "https://raw.githubusercontent.com/Reflex755/ReflexRepo/refs/heads/builds/repo.json",
-      "shortcode": "reflex",
-      "status": "maintained"
-    },
-    {
-      "name": "Turkish Providers Repo (@kraptor123)",
-      "url": "https://raw.githubusercontent.com/Kraptor123/cs-kraptor/refs/heads/master/repo.json",
-      "shortcode": "kraptorcs",
-      "status": "maintained"
-    },
-    {
-      "name": "Luna712",
-      "url": "https://raw.githubusercontent.com/Luna712/Luna712-CloudStream-Extensions/28885d17ceb7f24782b732b6056085c14c1fd027/repo.json",
-      "shortcode": "luna712",
-      "status": "maintained"
-    },
-    {
-      "name": "CuxPlug",
-      "url": "https://raw.githubusercontent.com/ycngmn/CuxPlug/refs/heads/main/repo.json",
-      "shortcode": "CuxPlug",
-      "status": "maintained"
-    },
+  },
+  {
+    "name": "Cinephile",
+    "description": "CloudStream extension Repository",
+    "manifestVersion": 1,
+    "pluginLists": [
+      "https://raw.githubusercontent.com/rockhero1234/cinephile/refs/heads/builds/plugins.json"
+    ]
+  },
+  {
+    "name": "Cartoony Repo",
+    "description": "CloudStream extension Repository",
+    "manifestVersion": 1,
+    "pluginLists": [
+      "https://raw.githubusercontent.com/med1245/cartoonyrepo/builds/plugins.json"
+    ]
+  },
+  {
+    "name": "Storm-ext Fork",
+    "description": "CloudStream extension Repository",
+    "manifestVersion": 1,
+    "pluginLists": [
+      "https://raw.githubusercontent.com/redblacker8/storm-ext/refs/heads/builds/plugins.json"
+    ]
+  },
+  {
+    "name": "CNC Verse Repository",
+    "description": "CloudStream extension Repository",
+    "manifestVersion": 1,
+    "pluginLists": [
+      "https://raw.githubusercontent.com/NivinCNC/CNCVerse-Cloud-Stream-Extension/refs/heads/builds/plugins.json"
+    ]
+  },
+  {
+    "name": "CloudStream Vietnamese",
+    "description": "CloudStream extension Repository",
+    "manifestVersion": 1,
+    "pluginLists": [
+      "https://gitlab.com/tearrs/cloudstream-vietnamese/-/raw/main/plugins.json"
+    ]
+  },
+  {
+    "name": "Avocado / Rowdy’s Extension",
+    "description": "CloudStream extension Repository",
+    "manifestVersion": 1,
+    "pluginLists": [
+      "https://raw.githubusercontent.com/Rowdy-Avocado/Rowdycado-Extensions/builds/plugins.json"
+    ]
+  },
+  {
+    "name": "English Provider Repository",
+    "description": "CloudStream extension Repository",
+    "manifestVersion": 1,
+    "pluginLists": [
+      "https://codeberg.org/cloudstream/cloudstream-extensions/raw/branch/builds/plugins.json"
+    ]
+  },
+  {
+    "name": "Hexated Providers Repository",
+    "description": "CloudStream extension Repository",
+    "manifestVersion": 1,
+    "pluginLists": [
+      "https://codeberg.org/cloudstream/cloudstream-extensions-hexated/raw/branch/builds/plugins.json"
+    ]
+  },
+  {
+    "name": "LikDev-256 Providers Repository",
+    "description": "CloudStream extension Repository",
+    "manifestVersion": 1,
+    "pluginLists": [
+      "https://codeberg.org/cloudstream/likdev256-tamil-providers/raw/branch/builds/plugins.json"
+    ]
+  },
+  {
+    "name": "Arabic Providers Repository",
+    "description": "CloudStream extension Repository",
+    "manifestVersion": 1,
+    "pluginLists": [
+      "https://codeberg.org/cloudstream/arab/raw/branch/builds/plugins.json"
+    ]
+  },
+  {
+    "name": "FStream",
+    "description": "CloudStream extension Repository",
+    "manifestVersion": 1,
+    "pluginLists": [
+      "https://git.disroot.org/ayza/FStream/raw/branch/main/plugins.json"
+    ]
+  },
+  {
+    "name": "ExtCloud Repo",
+    "description": "CloudStream extension Repository",
+    "manifestVersion": 1,
+    "pluginLists": [
+      "https://raw.githubusercontent.com/duro92/ExtCloud/main/plugins.json"
+    ]
+  },
+  {
+    "name": "BongNgoPlugins",
+    "description": "CloudStream extension Repository",
+    "manifestVersion": 1,
+    "pluginLists": [
+      "https://raw.githubusercontent.com/duongnv1996/bongngo-cs3-extension/master/plugins.json"
+    ]
+  },
+  {
+    "name": "IndusAryan’s Plugins",
+    "description": "CloudStream extension Repository",
+    "manifestVersion": 1,
+    "pluginLists": [
+      "https://codeberg.org/IndusAryan/AR/raw/branch/main/plugins.json"
+    ]
+  },
+  {
+    "name": "Darkdemon Extensions",
+    "description": "CloudStream extension Repository",
+    "manifestVersion": 1,
+    "pluginLists": [
+      "https://raw.githubusercontent.com/daarkdemon/cs-darkdemon-extensions/builds/plugins.json"
+    ]
+  }
+]
