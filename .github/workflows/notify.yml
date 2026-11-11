@@ -44,7 +44,7 @@ jobs:
           from zoneinfo import ZoneInfo
           ts = datetime.now(ZoneInfo('Asia/Dhaka')).strftime('%Y-%m-%d %I:%M:%S %p +06:00')
 
-          msg = f'\u2705 Pulse Stream Server 1\n\U0001f4fa Live Channel: {count}\n\U0001f552 {ts}'
+          msg = f'\u2705 MahSurat Stream Server 1\n\U0001f4fa Live Channel: {count}\n\U0001f552 {ts}'
           print(f'Message: {msg}')
 
           tg_url = f'https://api.telegram.org/bot{token}/sendMessage'
